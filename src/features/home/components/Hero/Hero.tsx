@@ -1,4 +1,17 @@
 import { Container } from '@/components/layout/Container'
+import { Typewriter } from '@/components/motion/Typewriter'
+
+const HERO_WORDS = [
+  'simplicidade',
+  'performance',
+  'escalabilidade',
+  'segurança',
+  'usabilidade',
+  'responsividade',
+  'eficiência',
+  'agilidade',
+  'flexibilidade',
+]
 
 export function Hero() {
   return (
@@ -6,7 +19,9 @@ export function Hero() {
       <Container className='flex flex-col items-center justify-center h-full px-8 md:px-0'>
         <div className="max-w-md md:max-w-xl xl:max-w-6xl w-full text-center">
           <h1 className='text-4xl md:text-6xl xl:text-[7rem] font-extrabold'>
-            <span className='text-foreground/90 uppercase'>transformando complexidade em simplicidade</span>
+            <span className='text-foreground/90 uppercase'>
+              transformando complexidade em <Typewriter words={HERO_WORDS} random align="center" />
+            </span>
           </h1>
           <h3 className='text-lg md:text-xl font-bold mt-5 tracking-tight'>
             <span className='text-foreground/60 uppercase'>é sobre unir código e criatividade perfeitamente, como uma mistura impecável de lógica e imaginação</span>
