@@ -34,7 +34,8 @@
 
   /* Project tokens */
   --space-section: clamp(4rem, 12vw, 8rem);
-  --container-max: 98vw;
+  --height-section: 115dvh;
+  --container-max: 98dvw;
   --z-cursor: 9999;
 }
 

@@ -1,50 +1,44 @@
 import type { Project } from '@/features/projects/types/project'
-import { Link } from '@/components/ui/Link'
 import { cn } from '@/lib/utils/cn'
+import { ParallaxImage } from '@/components/motion/Parallax'
 
 type ProjectCardProps = {
   project: Project
+  index: number
   className?: string
-  onHover?: (project: Project | null) => void
 }
 
-export function ProjectCard({ project, className, onHover }: ProjectCardProps) {
+export function ProjectCard({ project, index, className }: ProjectCardProps) {
   return (
-    <article
+    <section
       className={cn(
-        'group border-b border-border py-8 transition-colors',
+        'relative isolate h-dvh min-h-[560px] overflow-hidden bg-neutral-950 text-white',
         className,
       )}
-      onMouseEnter={() => onHover?.(project)}
-      onMouseLeave={() => onHover?.(null)}
+      data-cursor={`button[href="#project"]`}
+      id={`project-${project.slug}`}
     >
-      <div className="flex flex-col gap-3 md:flex-row md:items-baseline md:justify-between">
-        <div>
-          <p className="caption text-muted-foreground">{project.year}</p>
-          <h3 className="heading-2 mt-1">
-            {project.url ? (
-              <Link href={project.url} className="no-underline hover:no-underline">
-                {project.title}
-              </Link>
-            ) : (
-              project.title
-            )}
-          </h3>
-          <p className="body mt-2 max-w-xl text-muted-foreground">
-            {project.description}
-          </p>
-        </div>
-        <ul className="flex flex-wrap gap-2">
-          {project.tags.map((tag) => (
-            <li
-              key={tag}
-              className="caption rounded-md border border-border px-2 py-1 text-muted-foreground"
-            >
-              {tag}
-            </li>
-          ))}
-        </ul>
+      {project.image ? (
+        <ParallaxImage
+          src={project.image}
+          alt={project.title}
+          className="absolute inset-0 -z-10"
+        />
+      ) : null}
+
+      <div aria-hidden="true" className="absolute inset-0 -z-10 bg-black/45" />
+
+      <div className="flex h-full flex-col justify-center px-6 pb-[10dvh] md:px-[4vw]">
+        <p className="text-xs font-medium tracking-widest text-white/60 tabular-nums md:text-sm">
+          {String(index + 1).padStart(2, '0')} — {project.year}
+        </p>
+        <h2 className="mt-3 text-[clamp(2.75rem,8vw,7.5rem)] leading-[0.9] font-bold uppercase tracking-tight">
+          {project.title}
+        </h2>
+        <p className="mt-4 max-w-[30ch] text-lg leading-snug text-white/85 md:mt-6 md:text-2xl">
+          {project.description}
+        </p>
       </div>
-    </article>
+    </section>
   )
 }

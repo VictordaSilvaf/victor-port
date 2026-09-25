@@ -62,7 +62,7 @@ export function Typewriter({
   const word = words[clampedIndex] ?? ''
 
   const [text, setText] = useState(words[0] ?? '')
-  const [phase, setPhase] = useState<Phase>('idle')
+  const [phase, setPhase] = useState<Phase>(() => (loop ? 'typing' : 'idle'))
   const [trackedWord, setTrackedWord] = useState(word)
 
   // Sync rewrite when the target word changes (clock tick, new list item, etc.).
