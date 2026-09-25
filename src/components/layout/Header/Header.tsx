@@ -1,10 +1,12 @@
+import { useCallback, useEffect, useState } from 'react'
+import { ArrowRightIcon } from 'lucide-react'
 import { Container } from '@/components/layout/Container'
 import { Typewriter } from '@/components/motion/Typewriter'
-import { useEffect, useState } from 'react'
-import MenuButton from './components/MenuButton'
 import { Button } from '@/components/ui/button'
-import { ArrowRightIcon } from 'lucide-react'
 import { Magnetic } from '@/components/ui/Magnetic'
+import { cn } from '@/lib/utils/cn'
+import MenuButton from './components/MenuButton'
+import MenuContent from './components/MenuContent'
 
 function formatTime(date: Date) {
   return date.toLocaleTimeString('pt-BR', {
@@ -16,12 +18,20 @@ function formatTime(date: Date) {
 export function Header() {
   const [time, setTime] = useState(() => formatTime(new Date()))
   const [country, setCountry] = useState('Brasil')
+  const [menuOpen, setMenuOpen] = useState(false)
+
+  const closeMenu = useCallback(() => setMenuOpen(false), [])
+  const toggleMenu = useCallback(() => setMenuOpen((current) => !current), [])
 
   useEffect(() => {
     const fetchCountry = async () => {
-      const response = await fetch('https://ipapi.co/json/')
-      const data = await response.json()
-      setCountry(data.country_name)
+      try {
+        const response = await fetch('https://ipapi.co/json/')
+        const data = await response.json()
+        if (data?.country_name) setCountry(data.country_name)
+      } catch {
+        // keep default
+      }
     }
     fetchCountry()
   }, [])
@@ -38,40 +48,62 @@ export function Header() {
   }, [])
 
   return (
-    <header className="absolute top-0 z-40 w-screen">
-      <Container className="flex items-center justify-between py-8 flex-row">
-        <div className="flex flex-1 select-none cursor-default">
-          <h3 className="font-medium tracking-tight gap-3 flex items-center text-lg uppercase">
-            <span className="text-foreground/60">{country}</span>{' '}
-            <span className="text-foreground/90 tabular-nums">
-              <Typewriter
-                words={[time]}
-                loop={false}
-                typeSpeed={42}
-                deleteSpeed={28}
-                nextWordDelay={60}
-                placeholder="00:00"
-                showCaret={false}
-              />
-            </span>
-          </h3>
-        </div>
+    <>
+      <header
+        className={cn(
+          'top-0 z-50 w-screen transition-[color,background-color] duration-300',
+          menuOpen ? 'fixed text-foreground' : 'absolute',
+        )}
+      >
+        <Container className="flex flex-row items-center justify-between py-8">
+          <div className="flex flex-1 cursor-default select-none">
+            <h3 className="flex items-center gap-3 text-lg font-medium tracking-tight uppercase">
+              {menuOpen ? (
+                <>
+                  <span className="text-foreground/60">Local</span>
+                  <span className="text-foreground/90">/</span>
+                  <span className="text-foreground/80">{country}</span>
+                </>
+              ) : (
+                <>
+                  <span className="text-foreground/60">{country}</span>{' '}
+                  <span className="tabular-nums text-foreground/90">
+                    <Typewriter
+                      words={[time]}
+                      loop={false}
+                      typeSpeed={42}
+                      deleteSpeed={28}
+                      nextWordDelay={60}
+                      placeholder="00:00"
+                      showCaret={false}
+                    />
+                  </span>
+                </>
+              )}
+            </h3>
+          </div>
 
-        <Magnetic>
-          <MenuButton />
-        </Magnetic>
+          <Magnetic>
+            <MenuButton open={menuOpen} onClick={toggleMenu} />
+          </Magnetic>
 
-        <div className="flex flex-1 justify-end">
-          <Button
-            variant="outline"
-            size="lg"
-            className="text-lg cursor-interference"
-          >
-            <span className="uppercase text-lg">Entrar em contato</span>
-            <ArrowRightIcon className="w-6 h-6" />
-          </Button>
-        </div>
-      </Container>
-    </header>
+          <div className="flex flex-1 justify-end">
+            <Button
+              variant="outline"
+              size="lg"
+              className="cursor-interference text-lg"
+              asChild
+            >
+              <a href="/#contact" onClick={closeMenu}>
+                <span className="text-lg uppercase">Entrar em contato</span>
+                <ArrowRightIcon className="h-6 w-6" />
+              </a>
+            </Button>
+          </div>
+        </Container>
+      </header>
+
+      <MenuContent open={menuOpen} onClose={closeMenu} />
+    </>
   )
 }

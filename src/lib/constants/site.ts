@@ -10,10 +10,10 @@ export const siteConfig = {
     { label: 'Email', href: 'mailto:hello@victorfernandes.dev' },
   ],
   navItems: [
-    { label: 'Work', href: '#work' },
-    { label: 'About', href: '/sobre' },
-    { label: 'Experience', href: '#experience' },
-    { label: 'Contact', href: '#contact' },
+    { label: 'Início', href: '/' },
+    { label: 'Trabalhos', href: '/#work' },
+    { label: 'Sobre mim', href: '/sobre' },
+    { label: 'Contato', href: '/#contact' },
   ],
 } as const
 
