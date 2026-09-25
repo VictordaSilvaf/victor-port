@@ -111,11 +111,14 @@ function applyLetterStagger(
       return React.cloneElement(node, {
         className: cn(
           node.props.className,
-          "text-foreground transition-colors ease-out group-hover/button:text-background",
+          "text-foreground group-hover/button:text-background",
         ),
         style: {
           ...node.props.style,
-          transitionDuration: `${LETTER_COLOR_MS}ms`,
+          // Tailwind v4 sets `rotate` as its own property, not via `transform`.
+          transitionProperty: "color, rotate",
+          transitionDuration: `${LETTER_COLOR_MS}ms, var(--icon-rotate-ms, 500ms)`,
+          transitionTimingFunction: "ease-out, var(--icon-rotate-ease, cubic-bezier(0.22, 1, 0.36, 1))",
           ["--icon-delay" as string]: `${delay}ms`,
         },
         "data-outline-icon": "",
@@ -169,8 +172,8 @@ function Button({
           cn(
             "[&_[data-outline-letter]]:[transition-delay:0ms]",
             "hover:[&_[data-outline-letter]]:[transition-delay:calc(70ms+var(--letter-i)*16ms)]",
-            "[&_[data-outline-icon]]:[transition-delay:0ms]",
-            "hover:[&_[data-outline-icon]]:[transition-delay:var(--icon-delay,0ms)]",
+            "[&_[data-outline-icon]]:[transition-delay:0ms,0ms]",
+            "hover:[&_[data-outline-icon]]:[transition-delay:var(--icon-delay,0ms),0ms]",
           ),
       )}
       {...props}
