@@ -1,25 +1,47 @@
 import { Container } from '@/components/layout/Container'
-import { Link } from '@/components/ui/Link'
-import { siteConfig } from '@/lib/constants/site'
+import { useEffect, useState } from 'react'
+import MenuButton from './components/MenuButton'
+import { Button } from '@/components/ui/button'
+import { ArrowRightIcon } from 'lucide-react'
 
 export function Header() {
+  const [time, setTime] = useState(new Date())
+  const [country, setCountry] = useState('Brasil')
+
+  useEffect(() => {
+    const fetchCountry = async () => {
+      const response = await fetch('https://ipapi.co/json/')
+      const data = await response.json()
+      setCountry(data.country_name)
+    }
+    fetchCountry()
+  }, [])
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTime(new Date())
+    }, 1000)
+    return () => clearInterval(interval)
+  }, [])
+
   return (
-    <header className="sticky top-0 z-40 border-b border-border/60 bg-background/80 backdrop-blur-md">
-      <Container className="flex h-16 items-center justify-between">
-        <Link href="/" className="text-sm font-medium tracking-tight">
-          {siteConfig.name}
-        </Link>
-        <nav className="flex items-center gap-6" aria-label="Primary">
-          {siteConfig.navItems.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className="caption text-muted-foreground transition-colors hover:text-foreground"
-            >
-              {item.label}
-            </Link>
-          ))}
-        </nav>
+    <header className="absolute top-0 z-40 w-screen">
+      <Container className="flex items-center justify-between py-8 flex-row">
+        <div className="flex flex-1 select-none cursor-default">
+          <h3 className="font-medium tracking-tight gap-3 flex items-center text-lg uppercase">
+            <span className='text-foreground/60'>{country}</span> <span className='text-foreground/90'>{time.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</span>
+          </h3>
+        </div>
+
+        <MenuButton />
+
+        <div className="flex flex-1 justify-end">
+          <Button variant="outline" size="lg" className='text-lg'>
+            <span className='uppercase text-lg'>Entrar em contato</span>
+
+            <ArrowRightIcon className='w-6 h-6' />
+          </Button>
+        </div>
       </Container>
     </header>
   )
