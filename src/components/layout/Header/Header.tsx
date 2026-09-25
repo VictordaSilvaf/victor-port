@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import MenuButton from './components/MenuButton'
 import { Button } from '@/components/ui/button'
 import { ArrowRightIcon } from 'lucide-react'
+import { Magnetic } from '@/components/ui/Magnetic'
 
 export function Header() {
   const [time, setTime] = useState(new Date())
@@ -33,7 +34,9 @@ export function Header() {
           </h3>
         </div>
 
-        <MenuButton />
+        <Magnetic>
+          <MenuButton />
+        </Magnetic>
 
         <div className="flex flex-1 justify-end">
           <Button variant="outline" size="lg" className='text-lg cursor-interference'>
