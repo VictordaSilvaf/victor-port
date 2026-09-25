@@ -81,7 +81,7 @@ export function ProjectModal({
                       {project.image ? (
                         <motion.img
                           src={project.image}
-                          alt=""
+                          alt={`Captura do projeto ${project.title}`}
                           className="size-full object-cover"
                           initial={reducedMotion ? false : { scale: 1.18 }}
                           animate={{ scale: 1 }}

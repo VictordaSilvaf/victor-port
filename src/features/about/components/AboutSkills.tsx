@@ -8,9 +8,9 @@ function SkillLevel({ level }: { level: AboutSkill['level'] }) {
     <span
       className={cn(
         'inline-flex items-center rounded-full px-2.5 py-0.5 text-[0.65rem] font-semibold tracking-wider uppercase',
-        level === 'Pro' && 'bg-foreground/8 text-foreground',
-        level === 'Noob' && 'bg-foreground/8 text-foreground/70',
-        level === 'Hobby' && 'bg-foreground/8 text-foreground/70',
+        level === 'Advanced' && 'bg-foreground/8 text-foreground',
+        level === 'Working' && 'bg-foreground/8 text-foreground/70',
+        level === 'Learning' && 'bg-foreground/8 text-foreground/70',
       )}
     >
       {level}

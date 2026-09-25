@@ -14,8 +14,8 @@ export function Contact() {
             Bora conversar?
           </h2>
           <p className="mx-auto mt-5 max-w-xl text-base text-foreground/55 md:text-lg">
-            Aberto a produtos fullstack — Laravel, React, React Native e
-            sistemas que aguentam crescer.
+            Construo sistemas pensados para evoluir da arquitetura e domínio à
+            experiência que chega até o usuário.
           </p>
           <div className="mt-10 flex flex-col items-center gap-6">
             <Button variant="outline" size="lg" asChild>

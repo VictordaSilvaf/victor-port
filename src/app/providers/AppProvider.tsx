@@ -1,5 +1,7 @@
 import type { ReactNode } from 'react'
+import { HelmetProvider } from 'react-helmet-async'
 import { MotionProvider } from '@/app/providers/MotionProvider'
+import { JsonLd } from '@/components/seo'
 import { Cursor } from '@/components/ui/Cursor'
 
 type AppProviderProps = {
@@ -8,9 +10,12 @@ type AppProviderProps = {
 
 export function AppProvider({ children }: AppProviderProps) {
   return (
-    <MotionProvider>
-      <Cursor />
-      {children}
-    </MotionProvider>
+    <HelmetProvider>
+      <MotionProvider>
+        <JsonLd />
+        <Cursor />
+        {children}
+      </MotionProvider>
+    </HelmetProvider>
   )
 }
