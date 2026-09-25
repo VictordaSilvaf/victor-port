@@ -4,7 +4,16 @@ import {
   applyBehaviorTransition,
   getActiveBehavior,
   sampleInteraction,
+  type InteractionSample,
 } from './CursorInteraction'
+import {
+  createCursorLabel,
+  destroyCursorLabel,
+  hideCursorLabel,
+  showCursorLabel,
+  updateCursorLabel,
+  type CursorLabel,
+} from './CursorLabel'
 import {
   createCursorPhysics,
   isPhysicsAtRest,
@@ -39,8 +48,11 @@ export type CursorEngine = {
 type EngineInternal = {
   physics: CursorPhysics
   renderer: CursorRenderer
+  label: CursorLabel
   state: CursorStateMachine
   activeBehavior: CursorBehavior | undefined
+  /** Re-sample the element under the pointer on the next frame (scroll, DOM changes). */
+  needsSample: boolean
   rafId: number
   fadeTimeout: number
   lastFrameTime: number
@@ -67,6 +79,7 @@ export function createCursorEngine(
   parent.appendChild(canvas)
 
   const renderer = createCursorRenderer(canvas)
+  const label = createCursorLabel(parent)
   const physics = createCursorPhysics(-200, -200)
   const state = createCursorState('default')
 
@@ -76,8 +89,10 @@ export function createCursorEngine(
   const internal: EngineInternal = {
     physics,
     renderer,
+    label,
     state,
     activeBehavior: getActiveBehavior('default'),
+    needsSample: false,
     rafId: 0,
     fadeTimeout: 0,
     lastFrameTime: performance.now(),
@@ -105,6 +120,20 @@ export function createCursorEngine(
     const ctx = buildContext(time, dt)
     applyBehaviorTransition(internal.activeBehavior, nextBehavior, ctx)
     internal.activeBehavior = nextBehavior
+  }
+
+  const applySample = (sample: InteractionSample, time: number, dt: number) => {
+    switchState(sample.stateId, time, dt)
+    const labelConfig = internal.activeBehavior?.label
+    if (labelConfig) {
+      showCursorLabel(
+        label,
+        labelConfig,
+        sample.element?.getAttribute('data-cursor-label') ?? null,
+      )
+    } else {
+      hideCursorLabel(label)
+    }
   }
 
   const show = () => {
@@ -149,7 +178,12 @@ export function createCursorEngine(
     setPhysicsMousePosition(physics, x, y)
     show()
 
-    switchState(sampleInteraction(x, y).stateId, now / 1000, dtSec)
+    internal.needsSample = false
+    applySample(sampleInteraction(x, y), now / 1000, dtSec)
+  }
+
+  const requestSample = () => {
+    internal.needsSample = true
   }
 
   const onDocumentLeave = () => {
@@ -159,6 +193,7 @@ export function createCursorEngine(
     physics.mouseX += physics.mouseVx * cfg.exitProjection
     physics.mouseY += physics.mouseVy * cfg.exitProjection
     internal.awaitingReentry = true
+    hideCursorLabel(label)
 
     canvas.style.transition = `opacity ${cfg.exitFade}ms ease-out`
     canvas.style.opacity = '0'
@@ -198,16 +233,38 @@ export function createCursorEngine(
     internal.lastFrameTime = now
 
     // Fully settled and hidden: nothing to integrate or paint.
-    if (!internal.visible && isPhysicsAtRest(physics)) {
+    if (!internal.visible && isPhysicsAtRest(physics) && label.strength === 0) {
       internal.rafId = requestAnimationFrame(tick)
       return
+    }
+
+    // Content can move under a still pointer (smooth scroll, modals opening).
+    if (internal.needsSample && internal.visible && !internal.awaitingReentry) {
+      internal.needsSample = false
+      applySample(
+        sampleInteraction(internal.lastMoveX, internal.lastMoveY),
+        now / 1000,
+        dt,
+      )
     }
 
     updateInteractionStrength(state, cfg.stateLerp)
 
     physics.swell = 0
     internal.activeBehavior?.apply(buildContext(now / 1000, dt))
+    // The bubble drains into the label pill and refills when it retracts.
+    physics.swell -= (physics.radius + physics.swell) * label.strength
     updateCursorPhysics(physics, dt)
+
+    updateCursorLabel(
+      label,
+      physics.centerX,
+      physics.centerY,
+      physics.mouseVx,
+      physics.mouseVy,
+      dt,
+      internal.reducedMotion,
+    )
 
     if (internal.visible) {
       drawCursor(renderer, physics)
@@ -221,6 +278,9 @@ export function createCursorEngine(
   document.documentElement.addEventListener('mouseenter', onDocumentEnter)
   window.addEventListener('resize', onResize, { passive: true })
   window.addEventListener('blur', onWindowBlur)
+  window.addEventListener('scroll', requestSample, { passive: true, capture: true })
+  window.addEventListener('click', requestSample, { capture: true })
+  window.addEventListener('keyup', requestSample)
   reducedMotionMq.addEventListener('change', onReducedMotionChange)
 
   internal.rafId = requestAnimationFrame(tick)
@@ -239,7 +299,11 @@ export function createCursorEngine(
       document.documentElement.removeEventListener('mouseenter', onDocumentEnter)
       window.removeEventListener('resize', onResize)
       window.removeEventListener('blur', onWindowBlur)
+      window.removeEventListener('scroll', requestSample, { capture: true })
+      window.removeEventListener('click', requestSample, { capture: true })
+      window.removeEventListener('keyup', requestSample)
       reducedMotionMq.removeEventListener('change', onReducedMotionChange)
+      destroyCursorLabel(label)
       canvas.remove()
     },
   }

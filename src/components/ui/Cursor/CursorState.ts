@@ -2,6 +2,7 @@ export type CursorStateId =
   | 'default'
   | 'interactive'
   | 'interference'
+  | 'project'
   | 'hover'
   | 'view'
   | 'magnetic'

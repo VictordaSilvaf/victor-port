@@ -85,3 +85,62 @@
     }
   }
 }
+
+/* Simple smoky pill — same color inversion as the liquid cursor bubble. */
+@layer components {
+  .glass-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    padding: 0.85rem 1.25rem;
+    border-radius: 9999px;
+    color: #fff;
+    white-space: nowrap;
+    background: rgb(255 255 255 / 0.14);
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+  }
+
+  .glass-pill__text {
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    line-height: 1;
+    text-transform: uppercase;
+  }
+
+  .glass-pill__icon {
+    display: inline-flex;
+  }
+
+  /* Cursor label: soft smoke, blur shows through a translucent fill. */
+  .cursor-glass {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: var(--z-cursor);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    padding: 1.25rem 3rem;
+    border-radius: 9999px;
+    pointer-events: none;
+    color: #fff;
+    white-space: nowrap;
+    opacity: 0;
+    transform-origin: 50% 50%;
+    will-change: transform, opacity;
+    background: rgb(0 0 0 / 0.5);
+    -webkit-backdrop-filter: blur(8px) saturate(1.2);
+    backdrop-filter: blur(8px) saturate(1.2);
+    box-shadow:
+      0 0 0 1px rgb(255 255 255 / 0.06),
+      0 0 24px 2px rgb(0 0 0 / 0.25);
+  }
+
+  .cursor-glass .glass-pill__text,
+  .cursor-glass .glass-pill__icon {
+    color: inherit;
+    font-size: 1.05rem;
+  }
+}

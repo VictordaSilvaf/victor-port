@@ -1,7 +1,8 @@
-import { registerBehavior } from './CursorBehavior'
+import { registerBehavior, registerBehaviorAlias } from './CursorBehavior'
 import { DefaultBehavior } from './behaviors/DefaultBehavior'
 import { InteractiveBehavior } from './behaviors/InteractiveBehavior'
 import { InterferenceBehavior } from './behaviors/InterferenceBehavior'
+import { PROJECT_CURSOR, ProjectBehavior } from './behaviors/ProjectBehavior'
 
 let registered = false
 
@@ -11,5 +12,8 @@ export function registerBuiltInBehaviors(): void {
   registerBehavior(DefaultBehavior)
   registerBehavior(InteractiveBehavior)
   registerBehavior(InterferenceBehavior)
+  registerBehavior(ProjectBehavior)
+  registerBehaviorAlias(PROJECT_CURSOR, 'project')
+  registerBehaviorAlias('see-project', 'project')
   registered = true
 }

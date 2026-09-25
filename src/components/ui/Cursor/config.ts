@@ -55,6 +55,20 @@ export const CURSOR_CONFIG = {
   /** Blend rate between cursor states (0-1 per frame @60fps). */
   stateLerp: 0.07,
 
+  /* ---- label pill (e.g. "Ver projeto") ---------------------------------- */
+  /** Exponential rate the pill grows in (higher = snappier). */
+  labelShowRate: 11,
+  /** Exponential rate the pill shrinks back into the bubble. */
+  labelHideRate: 14,
+  /** Rotation (deg) per px/s of horizontal pointer velocity. */
+  labelTilt: 0.006,
+  /** Max tilt in degrees. */
+  labelMaxTilt: 9,
+  /** Stretch along X per px/s of pointer speed. */
+  labelStretch: 0.00005,
+  /** Max stretch factor added to scaleX. */
+  labelMaxStretch: 0.12,
+
   /* ---- viewport exit ---------------------------------------------------- */
   /** Seconds of velocity projected forward when the pointer leaves. */
   exitProjection: 0.28,
