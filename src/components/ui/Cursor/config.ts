@@ -57,9 +57,11 @@ export const CURSOR_CONFIG = {
 
   /* ---- label pill (e.g. "Ver projeto") ---------------------------------- */
   /** Exponential rate the pill grows in (higher = snappier). */
-  labelShowRate: 11,
+  labelShowRate: 7,
   /** Exponential rate the pill shrinks back into the bubble. */
-  labelHideRate: 14,
+  labelHideRate: 9,
+  /** Multiplier on pill strength for how fast the bubble hands off to it. */
+  labelHandoff: 3,
   /** Rotation (deg) per px/s of horizontal pointer velocity. */
   labelTilt: 0.006,
   /** Max tilt in degrees. */

@@ -9,6 +9,7 @@ import {
 import {
   createCursorLabel,
   destroyCursorLabel,
+  getLabelCollapse,
   hideCursorLabel,
   showCursorLabel,
   updateCursorLabel,
@@ -253,7 +254,7 @@ export function createCursorEngine(
     physics.swell = 0
     internal.activeBehavior?.apply(buildContext(now / 1000, dt))
     // The bubble drains into the label pill and refills when it retracts.
-    physics.swell -= (physics.radius + physics.swell) * label.strength
+    physics.swell -= (physics.radius + physics.swell) * getLabelCollapse(label)
     updateCursorPhysics(physics, dt)
 
     updateCursorLabel(
