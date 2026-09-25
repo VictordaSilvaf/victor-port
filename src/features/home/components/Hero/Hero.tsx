@@ -2,7 +2,7 @@ import { Container } from '@/components/layout/Container'
 
 export function Hero() {
   return (
-    <section id="hero" className="h-[95vh] relative">
+    <section id="hero" className="h-[92vh] relative">
       <Container className='flex flex-col items-center justify-center h-full px-8 md:px-0'>
         <div className="max-w-md md:max-w-xl xl:max-w-6xl w-full text-center">
           <h1 className='text-4xl md:text-6xl xl:text-[7rem] font-extrabold'>
@@ -21,7 +21,7 @@ export function Hero() {
 
 function HereFooter() {
   return (
-    <div className='absolute bottom-5 md:bottom-12 left-0 w-full'>
+    <div className='absolute bottom-5 md:bottom-8 left-0 w-full'>
       <Container className='flex md:flex-row flex-col gap-4 items-center justify-between'>
         <div className="max-w-xl text-center tracking-widest">
           <h3 className='text-sm md:text-md font-bold tracking-tight text-foreground/60 uppercase'>

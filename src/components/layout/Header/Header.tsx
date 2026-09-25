@@ -36,7 +36,7 @@ export function Header() {
         <MenuButton />
 
         <div className="flex flex-1 justify-end">
-          <Button variant="outline" size="lg" className='text-lg'>
+          <Button variant="outline" size="lg" className='text-lg cursor-interference'>
             <span className='uppercase text-lg'>Entrar em contato</span>
 
             <ArrowRightIcon className='w-6 h-6' />

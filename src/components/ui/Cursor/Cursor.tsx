@@ -1,30 +1,29 @@
+import { useEffect, useRef } from 'react'
 import { useMediaQuery } from '@/hooks/useMediaQuery'
-import { useMousePosition } from '@/hooks/useMousePosition'
-import { cn } from '@/lib/utils/cn'
+import {
+  createCursorEngine,
+  type CursorEngine,
+} from './CursorEngine'
 
-type CursorProps = {
-  className?: string
-}
-
-export function Cursor({ className }: CursorProps) {
-  const { x, y } = useMousePosition()
+/**
+ * React lifecycle shell for the liquid cursor engine.
+ * Physics, rendering, and interaction run outside React's render cycle.
+ */
+export function Cursor() {
+  const engineRef = useRef<CursorEngine | null>(null)
   const isFinePointer = useMediaQuery('(pointer: fine)')
 
-  if (!isFinePointer) {
-    return null
-  }
+  useEffect(() => {
+    if (!isFinePointer) return
 
-  return (
-    <div
-      aria-hidden="true"
-      className={cn(
-        'pointer-events-none fixed top-0 left-0 z-[var(--z-cursor)] size-3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-foreground mix-blend-difference',
-        className,
-      )}
-      style={{
-        left: x,
-        top: y,
-      }}
-    />
-  )
+    const engine = createCursorEngine(document.body)
+    engineRef.current = engine
+
+    return () => {
+      engine.destroy()
+      engineRef.current = null
+    }
+  }, [isFinePointer])
+
+  return null
 }

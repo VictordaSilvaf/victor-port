@@ -4,7 +4,7 @@ import { ProjectGrid } from '@/features/projects/components/ProjectGrid'
 
 export function SelectedWorks() {
   return (
-    <section id="work" className="py-[var(--space-section)]">
+    <section id="work" className="py-[var(--space-section)] bg-blue-400">
       <Container>
         <Reveal>
           <h2 className="heading-1">Selected works</h2>
