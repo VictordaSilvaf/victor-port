@@ -54,9 +54,10 @@ export function About() {
           </Link>
 
           <p className="mt-10 max-w-2xl text-base leading-relaxed font-semibold text-pretty text-muted-foreground sm:text-lg md:mt-16 md:text-xl">
-            Se você procura um fullstack software engineer — Laravel no backend,
-            React no frontend e apps em React Native — estou disponível pra
-            conversar. Vamos tirar a ideia do papel com código que escala.
+            Se você procura alguém para transformar problemas complexos em sistemas
+            bem estruturados, escaláveis e fáceis de evoluir, estou disponível para
+            conversar. Da arquitetura à implementação, gosto de construir software
+            com propósito.
           </p>
 
           <div className="mt-6 flex w-full flex-wrap items-center justify-center gap-3 sm:gap-4 md:mt-8 md:gap-6">

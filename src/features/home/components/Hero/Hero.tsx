@@ -1,3 +1,4 @@
+import { motion, useReducedMotion } from 'motion/react'
 import { Container } from '@/components/layout/Container'
 import { Typewriter } from '@/components/motion/Typewriter'
 
@@ -16,28 +17,38 @@ const HERO_WORDS = [
 const HERO_SEO_TITLE =
   'Transformando complexidade em simplicidade, performance e escalabilidade — software engineer fullstack em São Paulo'
 
+const EASE_OUT = [0.22, 1, 0.36, 1] as const
+
 export function Hero() {
+  const reducedMotion = useReducedMotion()
+
   return (
     <section id="hero" className="relative h-[92vh]">
       <Container className="flex h-full flex-col items-center justify-center px-8 md:px-0">
-        <div className="w-full max-w-md text-center md:max-w-xl xl:max-w-6xl">
+        <motion.div
+          className="w-full max-w-md text-center md:max-w-xl xl:max-w-6xl"
+          initial={reducedMotion ? false : { opacity: 0, y: 28 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, ease: EASE_OUT }}
+        >
           <h1 className="text-4xl font-extrabold md:text-6xl xl:text-[7rem]">
             <span className="sr-only">{HERO_SEO_TITLE}</span>
-            <span
-              aria-hidden="true"
-              className="text-foreground/90 uppercase"
-            >
+            <span aria-hidden="true" className="text-foreground/90 uppercase">
               transformando complexidade em{' '}
               <Typewriter words={HERO_WORDS} random align="center" />
             </span>
           </h1>
-          <p className="mt-5 text-lg font-bold tracking-tight md:text-xl">
+          <motion.p
+            className="mt-5 text-lg font-bold tracking-tight md:text-xl"
+            initial={reducedMotion ? false : { opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 0.15, ease: EASE_OUT }}
+          >
             <span className="text-foreground/60 uppercase">
-              fullstack software engineer — laravel, react e react native, do
-              backend ao app nas stores
+              software engineer — arquitetura, sistemas escaláveis e produtos digitais
             </span>
-          </p>
-        </div>
+          </motion.p>
+        </motion.div>
       </Container>
 
       <HereFooter />
@@ -46,8 +57,15 @@ export function Hero() {
 }
 
 function HereFooter() {
+  const reducedMotion = useReducedMotion()
+
   return (
-    <div className="absolute bottom-5 left-0 w-full md:bottom-8">
+    <motion.div
+      className="absolute bottom-5 left-0 w-full md:bottom-8"
+      initial={reducedMotion ? false : { opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.65, delay: 0.35, ease: EASE_OUT }}
+    >
       <Container className="flex flex-col items-center justify-between gap-4 md:flex-row">
         <div className="max-w-xl text-center tracking-widest">
           <p className="text-sm font-bold tracking-tight text-foreground/60 uppercase md:text-base">
@@ -62,6 +80,6 @@ function HereFooter() {
           </p>
         </div>
       </Container>
-    </div>
+    </motion.div>
   )
 }

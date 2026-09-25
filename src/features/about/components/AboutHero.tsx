@@ -14,7 +14,10 @@ export function AboutHero() {
         </h1>
       </Reveal>
 
-      <div className="relative z-0 -mt-6 w-[min(78vw,30rem)] overflow-hidden rounded-full md:-mt-10 md:w-[min(42vw,28rem)]">
+      <Reveal
+        delay={0.12}
+        className="relative z-0 -mt-6 w-[min(78vw,30rem)] overflow-hidden rounded-full md:-mt-10 md:w-[min(42vw,28rem)]"
+      >
         <Parallax speed={0.22} clip>
           <div className="aspect-square scale-[1.35]">
             <img
@@ -26,7 +29,7 @@ export function AboutHero() {
             />
           </div>
         </Parallax>
-      </div>
+      </Reveal>
     </section>
   )
 }

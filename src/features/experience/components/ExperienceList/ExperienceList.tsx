@@ -16,8 +16,8 @@ export function ExperienceList({
 }: ExperienceListProps) {
   return (
     <ul className={cn('list-none', className)}>
-      {items.map((entry) => (
-        <ExperienceItem key={entry.id} entry={entry} />
+      {items.map((entry, index) => (
+        <ExperienceItem key={entry.id} entry={entry} index={index} />
       ))}
     </ul>
   )
