@@ -10,11 +10,31 @@ import { fileURLToPath } from 'node:url'
 import { createServer } from 'node:http'
 import { readFile } from 'node:fs/promises'
 import puppeteer from 'puppeteer-core'
+import { findChrome } from './find-chrome.mjs'
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const distDir = resolve(root, 'dist')
 const shellPath = join(distDir, 'index.shell.html')
 const routes = ['/', '/sobre', '/contato']
+
+const chromePath = findChrome()
+const skip =
+  process.env.SKIP_PRERENDER === '1' ||
+  process.env.SKIP_PRERENDER === 'true' ||
+  !chromePath
+
+if (skip) {
+  console.warn(
+    '[prerender] Skipping — Chrome not available in this environment.',
+  )
+  console.warn(
+    '[prerender] SEO meta/JSON-LD still ship via react-helmet-async + index.html.',
+  )
+  console.warn(
+    '[prerender] Set CHROME_PATH locally, or run `pnpm prerender` on a machine with Chrome.',
+  )
+  process.exit(0)
+}
 
 const MIME = {
   '.html': 'text/html; charset=utf-8',
@@ -32,14 +52,17 @@ const MIME = {
   '.xml': 'application/xml',
 }
 
+if (!existsSync(join(distDir, 'index.html'))) {
+  console.error('[prerender] dist/index.html missing — run vite build first')
+  process.exit(1)
+}
+
 copyFileSync(join(distDir, 'index.html'), shellPath)
 
 function resolveDistFile(urlPath) {
   const clean = decodeURIComponent(urlPath.split('?')[0].split('#')[0])
   const hasExt = Boolean(extname(clean))
 
-  // During crawl, always serve the Vite shell for document navigations
-  // so React Router can render the correct route.
   if (!hasExt || clean.endsWith('.html')) {
     return shellPath
   }
@@ -68,13 +91,14 @@ await new Promise((resolveListen) => server.listen(0, '127.0.0.1', resolveListen
 const { port } = server.address()
 const origin = `http://127.0.0.1:${port}`
 
-const browser = await puppeteer.launch({
-  executablePath: process.env.CHROME_PATH || '/usr/bin/google-chrome',
-  headless: 'new',
-  args: ['--no-sandbox', '--disable-setuid-sandbox'],
-})
-
+let browser
 try {
+  browser = await puppeteer.launch({
+    executablePath: chromePath,
+    headless: 'new',
+    args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
+  })
+
   for (const route of routes) {
     const page = await browser.newPage()
     await page.goto(`${origin}${route}`, {
@@ -141,10 +165,14 @@ try {
     console.log(`[prerender] ${route} -> ${out}`)
     await page.close()
   }
+
+  console.log('[prerender] Done')
+} catch (error) {
+  console.warn('[prerender] Failed — continuing build without prerender.')
+  console.warn(error instanceof Error ? error.message : error)
+  process.exit(0)
 } finally {
-  await browser.close()
+  if (browser) await browser.close()
   server.close()
   if (existsSync(shellPath)) unlinkSync(shellPath)
 }
-
-console.log('[prerender] Done')

@@ -3,10 +3,28 @@ import { resolve, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
-const siteUrl = (process.env.VITE_SITE_URL || 'http://localhost:5173').replace(
-  /\/$/,
-  '',
-)
+
+function resolveSiteUrl() {
+  const fromEnv = process.env.VITE_SITE_URL?.trim()
+  if (fromEnv) return fromEnv.replace(/\/$/, '')
+
+  const production = process.env.VERCEL_PROJECT_PRODUCTION_URL?.trim()
+  if (production) {
+    return `https://${production.replace(/^https?:\/\//, '')}`.replace(
+      /\/$/,
+      '',
+    )
+  }
+
+  const preview = process.env.VERCEL_URL?.trim()
+  if (preview) {
+    return `https://${preview.replace(/^https?:\/\//, '')}`.replace(/\/$/, '')
+  }
+
+  return 'http://localhost:5173'
+}
+
+const siteUrl = resolveSiteUrl()
 
 const routes = [
   { path: '/', priority: '1.0', changefreq: 'weekly' },
