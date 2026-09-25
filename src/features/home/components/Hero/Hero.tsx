@@ -24,7 +24,10 @@ export function Hero() {
             </span>
           </h1>
           <h3 className='text-lg md:text-xl font-bold mt-5 tracking-tight'>
-            <span className='text-foreground/60 uppercase'>é sobre unir código e criatividade perfeitamente, como uma mistura impecável de lógica e imaginação</span>
+            <span className='text-foreground/60 uppercase'>
+              fullstack software engineer — laravel, react e react native, do
+              backend ao app nas stores
+            </span>
           </h3>
         </div>
       </Container>
@@ -45,7 +48,8 @@ function HereFooter() {
         </div>
         <div className="max-w-xl text-center tracking-widest">
           <h3 className='text-sm md:text-lg font-bold tracking-tight text-foreground/90 uppercase'>
-            Victor da Silva <span className='text-foreground/60'>| Arquiteto de Software</span>
+            Victor Fernandes{' '}
+            <span className="text-foreground/60">| Software Engineer</span>
           </h3>
         </div>
       </Container>

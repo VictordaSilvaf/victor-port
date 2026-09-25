@@ -19,7 +19,7 @@ const MENU_LINKS = [
   { label: 'Início', href: '/' },
   { label: 'Trabalhos', href: '/#work' },
   { label: 'Sobre mim', href: '/sobre' },
-  { label: 'Contato', href: '/#contact' },
+  { label: 'Contato', href: '/contato' },
 ] as const
 
 type MenuContentProps = {

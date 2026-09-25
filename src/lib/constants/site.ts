@@ -1,19 +1,23 @@
 export const siteConfig = {
   name: 'Victor Fernandes',
-  role: 'Frontend Engineer',
-  email: 'hello@victorfernandes.dev',
+  role: 'Software Engineer',
+  email: 'victordasilvafernandes@gmail.com',
   description:
-    'Frontend engineer crafting thoughtful interfaces with motion and craft.',
+  'Software engineer focado em arquitetura, sistemas distribuídos e construção de produtos digitais.',
   socials: [
-    { label: 'GitHub', href: 'https://github.com' },
-    { label: 'LinkedIn', href: 'https://linkedin.com' },
-    { label: 'Email', href: 'mailto:hello@victorfernandes.dev' },
+    { label: 'GitHub', href: 'https://github.com/victordasilvaf' },
+    {
+      label: 'LinkedIn',
+      href: 'https://www.linkedin.com/in/victordasilvafernandes/',
+    },
+    { label: 'Email', href: 'mailto:victordasilvafernandes@gmail.com' },
   ],
+
   navItems: [
     { label: 'Início', href: '/' },
     { label: 'Trabalhos', href: '/#work' },
     { label: 'Sobre mim', href: '/sobre' },
-    { label: 'Contato', href: '/#contact' },
+    { label: 'Contato', href: '/contato' },
   ],
 } as const
 

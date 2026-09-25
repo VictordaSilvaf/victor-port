@@ -1,6 +1,6 @@
 export type AboutSkill = {
   title: string
-  level: 'Pro' | 'Noob' | 'Hobby'
+  level: 'Advanced' | 'Working' | 'Learning'
   description: string
 }
 
@@ -25,86 +25,133 @@ export const aboutContent = {
     line1: 'Espera.',
     line2: 'Quem é esse cara?',
   },
+
   portrait: {
     src: 'https://placehold.co/800x1000',
     alt: 'Victor Fernandes',
   },
+
   bio: {
     lead:
-      'Baseado em São Paulo, sou frontend engineer com uma obsessão séria por interfaces que se sentem vivas. Especializo em React, motion e sistemas de design — basicamente, transformar ideias em algo que as pessoas usam sem precisar de um manual do tamanho de um dicionário.',
+      'Software engineer focado em arquitetura, sistemas distribuídos e construção de produtos digitais.',
+
     support:
-      'Estou numa missão de entender por que as pessoas usam produtos do jeito que usam, e de deixar essas experiências tão memoráveis que até a sua avó ficaria impressionada.',
+      'Minha atuação vai além de implementar funcionalidades. Trabalho na definição de arquitetura, modelagem de domínio, integração entre serviços e evolução de sistemas existentes. Uso DDD, arquitetura hexagonal, SOLID, testes automatizados e princípios de engenharia para transformar problemas complexos em sistemas simples de evoluir.',
+
     resumeHref: '/resume.pdf',
     resumeLabel: 'Baixar currículo',
   },
-  skillsTitle: 'O que eu faço',
+
+  skillsTitle: 'Como eu penso software',
+
   skills: [
     {
-      title: 'Product Frontend',
-      level: 'Pro',
+      title: 'Arquitetura de software',
+      level: 'Advanced',
       description:
-        'Transformo ideias de produto em interfaces que ninguém quer jogar o celular pela janela. Fluidas, acessíveis e tão claras que o usuário entende no primeiro toque.',
+        'Desenho sistemas pensando em domínio, responsabilidades, dependências e evolução. DDD, arquitetura hexagonal, modularização, eventos e padrões que ajudam sistemas complexos a continuarem compreensíveis.',
     },
+
     {
-      title: 'Motion & interação',
-      level: 'Pro',
+      title: 'Backend & sistemas distribuídos',
+      level: 'Advanced',
       description:
-        'Animações com propósito — física, scroll e microinterações que dão presença sem atrapalhar. Se parece mágica, o código está trabalhando quieto.',
+        'Construção de APIs e serviços com PHP, Laravel, Slim e NestJS. Trabalho com mensageria, filas, integrações, persistência, cache e processamento assíncrono, sempre considerando consistência, observabilidade e escalabilidade.',
     },
+
     {
-      title: 'Design Systems',
-      level: 'Pro',
+      title: 'Frontend & Mobile',
+      level: 'Advanced',
       description:
-        'Componentes, tokens e documentação pra times não reinventarem o botão toda sprint. Consistência sem matar a personalidade do produto.',
+        'React e React Native para construir interfaces que não sejam apenas funcionais, mas consistentes com a arquitetura e as necessidades do produto. Experiência com aplicações web, mobile e integrações com serviços backend.',
     },
+
     {
-      title: 'Fotografia',
-      level: 'Hobby',
+      title: 'Engenharia & qualidade',
+      level: 'Advanced',
       description:
-        'Hobby? Com certeza. Embora eu ainda esteja procurando onde deixei a câmera depois do último ensaio, dois anos atrás :)',
+        'Código limpo é consequência de boas decisões de design. Trabalho com testes automatizados, TDD, code review, refatoração, padrões de projeto e práticas que reduzem o custo de mudança ao longo do tempo.',
+    },
+
+    {
+      title: 'Infraestrutura & integração',
+      level: 'Working',
+      description:
+        'Docker, Redis, RabbitMQ, PostgreSQL, Elasticsearch e ambientes distribuídos. Experiência conectando diferentes sistemas e lidando com os problemas que aparecem quando software deixa de ser apenas código.',
     },
   ] satisfies AboutSkill[],
+
   experienceTitle: 'Experiência &',
-  experienceTitleAccent: 'educação',
+  experienceTitleAccent: 'evolução',
+
   jobs: [
     {
-      company: 'Independente',
-      location: 'São Paulo',
-      role: 'Frontend Engineer',
-      period: '2023 — Presente',
+      company: 'TradeUp Group',
+      location: 'Barueri, SP',
+      role: 'Desenvolvedor Full-Stack 2',
+      period: 'Abr 2026 — Presente',
       paragraphs: [
-        'Construo interfaces polidas e experiências de marketing com motion pra produtos e marcas. Do protótipo ao deploy: **React**, **TypeScript**, design systems e handoff com engenharia.',
-        'Colaboro de perto com founders, designers e PMs — alinhando escopo, ritmo e o detalhe que faz a diferença na tela.',
+        'Atuo na evolução de plataformas de telecomunicações com foco em **arquitetura, escalabilidade, performance e confiabilidade**. Trabalho na definição e evolução de componentes de backend utilizando **Laravel** e **Slim**, aplicando **DDD**, arquitetura hexagonal e princípios de design orientados a domínio.',
+        'Participo de decisões que atravessam diferentes camadas do sistema: modelagem de domínio, integrações, processamento assíncrono, persistência, SQL, APIs e fluxos críticos de negócio. Também contribuo em **React** e **React Native**, conectando decisões de arquitetura entre backend, frontend e mobile.',
+        'Entre os desafios estão integrações externas, fluxos de pedidos, biometria, automações e evolução de sistemas existentes sem interromper operações. Também atuo na qualidade do software através de testes, revisão de código e definição de padrões técnicos.',
       ],
     },
+
     {
-      company: 'Studio North',
-      location: 'Remoto',
-      role: 'Frontend Developer',
-      period: '2021 — 2023',
+      company: 'Noweb Publicidade',
+      location: 'São Paulo, SP',
+      role: 'Desenvolvedor Full Stack',
+      period: 'Jul 2023 — Ago 2025',
       paragraphs: [
-        'Entreguei sites interativos e sistemas de design pra times de produto e marca em SaaS, e-commerce e fintech. Pesquisei, prototipei e implementei ponta a ponta.',
+        'Atuei como principal desenvolvedor de uma plataforma imobiliária SaaS utilizada por **mais de 2.000 corretores**, com um catálogo de **mais de 5.000 imóveis**. Além do desenvolvimento, participei diretamente das decisões técnicas e da evolução da arquitetura da plataforma.',
+        'No backend, trabalhei principalmente com **Laravel**, filas, WebSockets, distribuição de leads e integrações. No frontend, utilizei **React.js** e Livewire, além de **React Native** no aplicativo mobile.',
+        'Também conduzi refatorações de sistemas legados, code reviews e padronização técnica, buscando reduzir acoplamento e tornar a base de código mais previsível para o crescimento do produto e do time.',
+      ],
+    },
+
+    {
+      company: 'Lampada Global',
+      location: 'São Paulo, SP',
+      role: 'Programador de Sistemas de Informação',
+      period: 'Mar 2023 — Abr 2023',
+      paragraphs: [
+        'Atuei na manutenção e evolução de um CRM legado baseado em **SugarCRM**, trabalhando com PHP e integrações existentes. Também desenvolvi scripts para migração e processamento de grandes volumes de dados.',
+      ],
+    },
+
+    {
+      company: 'Desicon Ferragens',
+      location: 'São Paulo, SP',
+      role: 'Desenvolvedor Web',
+      period: 'Jul 2021 — Abr 2023',
+      paragraphs: [
+        'Desenvolvi de ponta a ponta uma plataforma de vendas **B2B e B2C**, conectando frontend, backend e serviços externos. A solução utilizava **Laravel** e integrações com ERP, e-commerce, gateways de pagamento e logística.',
+        'Minha trajetória começou como estagiário e evoluiu para desenvolvedor em aproximadamente um ano, acompanhando o aumento da responsabilidade sobre o produto e suas decisões técnicas.',
       ],
     },
   ] satisfies AboutJob[],
+
   education: [
     {
-      school: 'Universidade / Formação',
-      degree: 'Ciência da Computação',
-      period: '2017 — 2021',
+      school: 'Centro Universitário Senac',
+      degree: 'Sistemas para Internet — Tecnologia da Informação',
+      period: '2019 — 2021',
       description:
-        'Base sólida em algoritmos, arquitetura de software e resolução de problemas — o chão que sustenta interfaces bonitas e código que aguenta crescimento.',
+        'Formação que construiu minha base em desenvolvimento de software, sistemas de informação, desenvolvimento web e resolução de problemas.',
     },
   ] satisfies AboutEducation[],
+
   closing: {
     line1:
-      'Com anos de frontend, já trabalhei lado a lado com founders, product leaders e empresas em SaaS, e-commerce e fintech.',
+      'Minha experiência começou escrevendo funcionalidades e evoluiu para pensar em como sistemas inteiros devem ser construídos, integrados e mantidos.',
+
     line2:
-      'Fora do emprego formal, também tenho o hábito saudável de fazer desenvolvedores suarem de vez em quando.',
+      'Hoje meu foco está em transformar complexidade em arquitetura compreensível: sistemas que suportam crescimento sem transformar cada nova mudança em um problema.',
   },
+
   cta: {
-    title: 'Bora conversar?',
+    title: 'Vamos construir algo?',
     button: 'Entrar em contato',
-    href: 'mailto:hello@victorfernandes.dev',
+    href: '/contato',
   },
 } as const

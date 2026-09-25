@@ -143,6 +143,32 @@ function extractText(node: React.ReactNode): string {
   return ""
 }
 
+function prepareOutlineContent(children: React.ReactNode, asChild: boolean) {
+  const counter = { value: 0 }
+  const label = extractText(children)
+
+  if (
+    asChild &&
+    React.isValidElement<{ children?: React.ReactNode }>(children)
+  ) {
+    return React.cloneElement(children, {
+      children: (
+        <>
+          {label ? <span className="sr-only">{label}</span> : null}
+          {applyLetterStagger(children.props.children, counter)}
+        </>
+      ),
+    } as never)
+  }
+
+  return (
+    <>
+      {label ? <span className="sr-only">{label}</span> : null}
+      {applyLetterStagger(children, counter)}
+    </>
+  )
+}
+
 function Button({
   className,
   variant = "default",
@@ -155,10 +181,9 @@ function Button({
     asChild?: boolean
   }) {
   const Comp = asChild ? Slot.Root : "button"
-  const isOutline = variant === "outline" && !asChild
-  const accessibleLabel = isOutline ? extractText(children) : null
+  const isOutline = variant === "outline"
   const content = isOutline
-    ? applyLetterStagger(children, { value: 0 })
+    ? prepareOutlineContent(children, asChild)
     : children
 
   return (
@@ -178,16 +203,7 @@ function Button({
       )}
       {...props}
     >
-      {isOutline ? (
-        <>
-          {accessibleLabel ? (
-            <span className="sr-only">{accessibleLabel}</span>
-          ) : null}
-          {content}
-        </>
-      ) : (
-        content
-      )}
+      {content}
     </Comp>
   )
 }

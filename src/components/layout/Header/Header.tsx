@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
+import { Link } from 'react-router'
 import { ArrowRightIcon } from 'lucide-react'
 import { Container } from '@/components/layout/Container'
 import { Typewriter } from '@/components/motion/Typewriter'
@@ -56,8 +57,8 @@ export function Header() {
         )}
       >
         <Container className="flex flex-row items-center justify-between py-8">
-          <div className="flex flex-1 cursor-default select-none">
-            <h3 className="flex items-center gap-3 text-lg font-medium tracking-tight uppercase">
+          <div className="flex-1 cursor-default select-none hidden md:flex">
+            <h3 className="items-center gap-3 text-lg font-medium tracking-tight uppercase flex">
               {menuOpen ? (
                 <>
                   <span className="text-foreground/60">Local</span>
@@ -94,10 +95,10 @@ export function Header() {
               className="cursor-interference text-lg"
               asChild
             >
-              <a href="/#contact" onClick={closeMenu}>
+              <Link to="/contato" onClick={closeMenu}>
                 <span className="text-lg uppercase">Entrar em contato</span>
                 <ArrowRightIcon className="h-6 w-6" />
-              </a>
+              </Link>
             </Button>
           </div>
         </Container>

@@ -1,6 +1,7 @@
 import { createBrowserRouter } from 'react-router'
 import { RootLayout } from '@/app/router/RootLayout'
 import { AboutPage } from '@/features/about'
+import { ContactPage } from '@/features/contact'
 import { HomePage } from '@/features/home/HomePage'
 
 export const router = createBrowserRouter([
@@ -15,6 +16,10 @@ export const router = createBrowserRouter([
       {
         path: 'sobre',
         element: <AboutPage />,
+      },
+      {
+        path: 'contato',
+        element: <ContactPage />,
       },
     ],
   },
