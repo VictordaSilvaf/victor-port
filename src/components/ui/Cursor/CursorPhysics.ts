@@ -20,19 +20,14 @@ export type CursorPhysics = {
   points: Point[]
   centerX: number
   centerY: number
-  /** Lagging anchor used to draw the trail. */
-  trailX: number
-  trailY: number
+  /** Brush tail chain; index 0 is always the head center. */
+  tailX: Float32Array
+  tailY: Float32Array
   mouseX: number
   mouseY: number
   /** Smoothed pointer velocity (px/s). */
   mouseVx: number
   mouseVy: number
-  /** Smoothed elongation amount. */
-  stretch: number
-  /** Direction of travel, smoothed alongside the stretch. */
-  motionX: number
-  motionY: number
   /** Uniform radial swell requested by behaviors (e.g. hover). */
   swell: number
   radius: number
@@ -64,19 +59,19 @@ export function createCursorPhysics(startX = 0, startY = 0): CursorPhysics {
     })
   }
 
+  const tailX = new Float32Array(CURSOR_CONFIG.brushSegments).fill(startX)
+  const tailY = new Float32Array(CURSOR_CONFIG.brushSegments).fill(startY)
+
   return {
     points,
     centerX: startX,
     centerY: startY,
-    trailX: startX,
-    trailY: startY,
+    tailX,
+    tailY,
     mouseX: startX,
     mouseY: startY,
     mouseVx: 0,
     mouseVy: 0,
-    stretch: 0,
-    motionX: 0,
-    motionY: 0,
     swell: 0,
     radius,
     reducedMotion: false,
@@ -112,15 +107,12 @@ export function resetPhysicsTo(
 ): void {
   physics.centerX = x
   physics.centerY = y
-  physics.trailX = x
-  physics.trailY = y
   physics.mouseX = x
   physics.mouseY = y
   physics.mouseVx = 0
   physics.mouseVy = 0
-  physics.stretch = 0
-  physics.motionX = 0
-  physics.motionY = 0
+  physics.tailX.fill(x)
+  physics.tailY.fill(y)
 
   for (const p of physics.points) {
     p.r = 0
@@ -128,6 +120,43 @@ export function resetPhysicsTo(
     p.impulse = 0
     p.x = x + p.cos * physics.radius
     p.y = y + p.sin * physics.radius
+  }
+}
+
+function updateTail(physics: CursorPhysics, t: number): void {
+  const cfg = CURSOR_CONFIG
+  const { tailX, tailY } = physics
+  const count = tailX.length
+
+  tailX[0] = physics.centerX
+  tailY[0] = physics.centerY
+
+  if (physics.reducedMotion && !cfg.reducedMotion.brushEnabled) {
+    tailX.fill(physics.centerX)
+    tailY.fill(physics.centerY)
+    return
+  }
+
+  const link = 1 - Math.exp(-cfg.brushFollow * t)
+  const maxSegment = cfg.brushMaxSegment
+
+  for (let i = 1; i < count; i++) {
+    const px = tailX[i - 1]!
+    const py = tailY[i - 1]!
+    let x = tailX[i]! + (px - tailX[i]!) * link
+    let y = tailY[i]! + (py - tailY[i]!) * link
+
+    const dx = x - px
+    const dy = y - py
+    const distance = Math.hypot(dx, dy)
+    if (distance > maxSegment) {
+      const k = maxSegment / distance
+      x = px + dx * k
+      y = py + dy * k
+    }
+
+    tailX[i] = x
+    tailY[i] = y
   }
 }
 
@@ -141,9 +170,6 @@ export function updateCursorPhysics(physics: CursorPhysics, dt: number): void {
   const diffusion = reduced
     ? cfg.reducedMotion.neighborDiffusion
     : cfg.neighborDiffusion
-  const mouseInfluence = reduced
-    ? cfg.reducedMotion.mouseInfluence
-    : cfg.mouseInfluence
   const centerFollow = reduced
     ? cfg.reducedMotion.centerFollow
     : cfg.centerFollow
@@ -159,28 +185,12 @@ export function updateCursorPhysics(physics: CursorPhysics, dt: number): void {
   if (Math.abs(physics.mouseVx) < 1) physics.mouseVx = 0
   if (Math.abs(physics.mouseVy) < 1) physics.mouseVy = 0
 
-  // --- center + trail follow (exponential, never overshoots) --------------
+  // --- head follows the pointer (exponential, never overshoots) -----------
   const follow = 1 - Math.exp(-centerFollow * t)
   physics.centerX += (physics.mouseX - physics.centerX) * follow
   physics.centerY += (physics.mouseY - physics.centerY) * follow
 
-  const trailFollow = 1 - Math.exp(-cfg.trailFollow * t)
-  physics.trailX += (physics.centerX - physics.trailX) * trailFollow
-  physics.trailY += (physics.centerY - physics.trailY) * trailFollow
-
-  // --- elongation along the travel axis -----------------------------------
-  const speed = Math.hypot(physics.mouseVx, physics.mouseVy)
-  const targetStretch = Math.min(cfg.maxStretch, speed * mouseInfluence)
-  const stretchLerp = 1 - Math.exp(-cfg.stretchFollow * t)
-  physics.stretch += (targetStretch - physics.stretch) * stretchLerp
-  if (physics.stretch < 0.0015) physics.stretch = 0
-
-  if (speed > 1) {
-    const targetX = physics.mouseVx / speed
-    const targetY = physics.mouseVy / speed
-    physics.motionX += (targetX - physics.motionX) * stretchLerp
-    physics.motionY += (targetY - physics.motionY) * stretchLerp
-  }
+  updateTail(physics, t)
 
   // --- radial wave equation, fixed substeps for stability -----------------
   const substeps = Math.min(MAX_SUBSTEPS, Math.max(1, Math.ceil(t / FIXED_DT)))
@@ -214,28 +224,30 @@ export function updateCursorPhysics(physics: CursorPhysics, dt: number): void {
     }
   }
 
-  // --- resolve screen positions -------------------------------------------
-  const stretch = physics.stretch
-  const mx = physics.motionX
-  const my = physics.motionY
+  // --- resolve screen positions: the head always stays round --------------
   const baseRadius = radius + physics.swell
 
   for (let i = 0; i < count; i++) {
     const p = points[i]!
-    // Volume-preserving ellipse: extend along travel, squash across it.
-    const along = p.cos * mx + p.sin * my
-    const scale = 1 + stretch * (along * along * 2 - 1)
-    const len = (baseRadius + p.r) * scale
-
+    const len = baseRadius + p.r
     p.x = physics.centerX + p.cos * len
     p.y = physics.centerY + p.sin * len
     p.impulse = 0
   }
 }
 
-/** True when the surface has fully settled back into a circle. */
+export function getTailLength(physics: CursorPhysics): number {
+  const { tailX, tailY } = physics
+  let length = 0
+  for (let i = 1; i < tailX.length; i++) {
+    length += Math.hypot(tailX[i]! - tailX[i - 1]!, tailY[i]! - tailY[i - 1]!)
+  }
+  return length
+}
+
+/** True when the surface is a circle and the tail has fully retracted. */
 export function isPhysicsAtRest(physics: CursorPhysics): boolean {
-  if (physics.stretch > 0.001) return false
+  if (getTailLength(physics) > 0.25) return false
   for (const p of physics.points) {
     if (Math.abs(p.r) > 0.05 || Math.abs(p.rv) > 0.05) return false
   }

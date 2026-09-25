@@ -18,29 +18,23 @@ export const CURSOR_CONFIG = {
   /** Wave propagation across neighboring samples. */
   neighborDiffusion: 30,
 
-  /* ---- motion deformation ----------------------------------------------- */
-  /** Smoothed velocity -> stretch conversion. */
-  mouseInfluence: 0.00055,
-  /** Max elongation along the travel axis. */
-  maxStretch: 0.46,
+  /* ---- pointer velocity ------------------------------------------------- */
   /** EMA applied to raw pointer velocity. */
   velocitySmoothing: 0.22,
   /** Per-frame velocity decay when the pointer idles. */
   velocityDecay: 0.9,
-  /** Exponential rate for the smoothed stretch value. */
-  stretchFollow: 11,
 
-  /* ---- trail ------------------------------------------------------------ */
-  /** Follow rate of the lagging trail anchor (lower = longer trail). */
-  trailFollow: 8,
-  /** Number of echo blobs behind the cursor. */
-  trailCount: 3,
-  /** Peak alpha of the closest echo. */
-  trailAlpha: 0.2,
-  /** Distance (px) before the trail starts fading in. */
-  trailMinDistance: 5,
-  /** Distance (px) at which the trail reaches full alpha. */
-  trailFullDistance: 42,
+  /* ---- brush tail ------------------------------------------------------- */
+  /** Number of nodes in the tail chain (more = smoother curves). */
+  brushSegments: 12,
+  /** Follow rate of each node toward the previous one (lower = longer tail). */
+  brushFollow: 34,
+  /** Max distance between two nodes, caps the tail length on fast strokes. */
+  brushMaxSegment: 7,
+  /** Taper exponent: >1 thins the tail faster, <1 keeps it thick longer. */
+  brushTaper: 1.35,
+  /** Tail length (px) below which it is not drawn. */
+  brushMinLength: 1.5,
 
   /* ---- interactive (links, buttons) ------------------------------------- */
   /** Gentle surface shimmer amplitude in px. */
@@ -75,10 +69,9 @@ export const CURSOR_CONFIG = {
     stiffness: 320,
     damping: 34,
     neighborDiffusion: 8,
-    mouseInfluence: 0,
     interactionAmplitude: 0,
     interferenceAmplitude: 0,
-    trailAlpha: 0,
+    brushEnabled: false,
   },
 } as const
 
