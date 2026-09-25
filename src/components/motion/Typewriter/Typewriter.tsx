@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useMediaQuery } from '@/hooks/useMediaQuery'
 import { cn } from '@/lib/utils/cn'
 
-type Phase = 'typing' | 'deleting'
+type Phase = 'typing' | 'deleting' | 'idle'
 
 type TypewriterProps = {
   words: readonly string[]
@@ -11,9 +11,17 @@ type TypewriterProps = {
   pauseDuration?: number
   nextWordDelay?: number
   random?: boolean
+  /**
+   * When false, keeps the typed word until `words` changes,
+   * then deletes and retypes the new value.
+   */
+  loop?: boolean
   /** Reserve the width of the widest word so surrounding layout never shifts. */
   reserveSpace?: boolean
+  /** Extra sample used only to reserve width (e.g. "00:00" for clocks). */
+  placeholder?: string
   align?: 'start' | 'center' | 'end'
+  showCaret?: boolean
   className?: string
   caretClassName?: string
 }
@@ -35,30 +43,51 @@ function pickNextIndex(current: number, total: number, random: boolean) {
 export function Typewriter({
   words,
   typeSpeed = 70,
-  deleteSpeed = 120,
+  deleteSpeed = 40,
   pauseDuration = 2200,
   nextWordDelay = 300,
   random = false,
+  loop = true,
   reserveSpace = true,
+  placeholder,
   align = 'start',
+  showCaret = true,
   className,
   caretClassName,
 }: TypewriterProps) {
   const reducedMotion = useMediaQuery('(prefers-reduced-motion: reduce)')
+  const safeIndexMax = Math.max(words.length - 1, 0)
   const [index, setIndex] = useState(0)
-  const [text, setText] = useState(words[0] ?? '')
-  const [phase, setPhase] = useState<Phase>('typing')
+  const clampedIndex = Math.min(index, safeIndexMax)
+  const word = words[clampedIndex] ?? ''
 
-  const word = words[index] ?? ''
+  const [text, setText] = useState(words[0] ?? '')
+  const [phase, setPhase] = useState<Phase>('idle')
+  const [trackedWord, setTrackedWord] = useState(word)
+
+  // Sync rewrite when the target word changes (clock tick, new list item, etc.).
+  if (word !== trackedWord) {
+    setTrackedWord(word)
+    if (reducedMotion) {
+      setText(word)
+      setPhase('idle')
+    } else {
+      setPhase(text === '' ? 'typing' : 'deleting')
+    }
+  }
 
   useEffect(() => {
-    if (words.length === 0) return
+    if (words.length === 0 || phase === 'idle') return
 
     let timeout: number
 
     if (phase === 'typing') {
       if (text === word) {
-        timeout = window.setTimeout(() => setPhase('deleting'), pauseDuration)
+        if (loop) {
+          timeout = window.setTimeout(() => setPhase('deleting'), pauseDuration)
+        } else {
+          timeout = window.setTimeout(() => setPhase('idle'), 0)
+        }
       } else {
         timeout = window.setTimeout(() => {
           setText(reducedMotion ? word : word.slice(0, text.length + 1))
@@ -66,7 +95,9 @@ export function Typewriter({
       }
     } else if (text === '') {
       timeout = window.setTimeout(() => {
-        setIndex((current) => pickNextIndex(current, words.length, random))
+        if (loop) {
+          setIndex((current) => pickNextIndex(current, words.length, random))
+        }
         setPhase('typing')
       }, nextWordDelay)
     } else {
@@ -86,10 +117,13 @@ export function Typewriter({
     pauseDuration,
     nextWordDelay,
     random,
+    loop,
     reducedMotion,
   ])
 
-  const caret = (
+  const ghosts = placeholder ? [...words, placeholder] : [...words]
+
+  const caret = showCaret ? (
     <span
       aria-hidden="true"
       className={cn(
@@ -97,7 +131,7 @@ export function Typewriter({
         caretClassName,
       )}
     />
-  )
+  ) : null
 
   if (!reserveSpace) {
     return (
@@ -112,14 +146,16 @@ export function Typewriter({
   return (
     <span className={cn('inline-grid whitespace-nowrap', className)}>
       <span className="sr-only">{word}</span>
-      {words.map((ghost) => (
+      {ghosts.map((ghost) => (
         <span
           key={ghost}
           aria-hidden="true"
           className="invisible col-start-1 row-start-1"
         >
           {ghost}
-          <span className="ml-[0.05em] inline-block w-[0.08em]" />
+          {showCaret ? (
+            <span className="ml-[0.05em] inline-block w-[0.08em]" />
+          ) : null}
         </span>
       ))}
       <span
