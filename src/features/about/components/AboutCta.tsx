@@ -3,11 +3,12 @@ import { Reveal } from '@/components/motion/Reveal'
 import { Button } from '@/components/ui/button'
 import { Link } from '@/components/ui/Link'
 import { Container } from '@/components/layout/Container'
+import { useSiteConfig } from '@/app/providers/site-settings-context'
 import { aboutContent } from '@/features/about/data/about'
-import { siteConfig } from '@/lib/constants/site'
 
 export function AboutCta() {
   const { cta } = aboutContent
+  const site = useSiteConfig()
 
   return (
     <section className="py-[var(--space-section)]">
@@ -31,7 +32,7 @@ export function AboutCta() {
               </Link>
             </Button>
             <ul className="flex flex-wrap items-center justify-center gap-6">
-              {siteConfig.socials.map((social) => (
+              {site.socials.map((social) => (
                 <li key={social.label}>
                   <Link
                     href={social.href}

@@ -1,3 +1,4 @@
+import { Link } from 'react-router'
 import { ArrowRightIcon } from 'lucide-react'
 import { motion, useReducedMotion } from 'motion/react'
 import type { Project } from '@/features/projects/types/project'
@@ -10,11 +11,10 @@ const EASE_OUT = [0.22, 1, 0.36, 1] as const
 type ProjectCardProps = {
   project: Project
   index: number
-  onOpen?: () => void
   className?: string
 }
 
-export function ProjectCard({ project, index, onOpen, className }: ProjectCardProps) {
+export function ProjectCard({ project, index, className }: ProjectCardProps) {
   const reducedMotion = useReducedMotion()
 
   return (
@@ -51,7 +51,6 @@ export function ProjectCard({ project, index, onOpen, className }: ProjectCardPr
         <p className="mt-4 max-w-[30ch] text-lg leading-snug text-white/85 md:mt-6 md:text-2xl">
           {project.description}
         </p>
-        {/* Touch devices have no cursor pill, so show the call to action inline. */}
         <span
           aria-hidden="true"
           className="glass-pill mt-8 hidden w-fit pointer-coarse:inline-flex"
@@ -63,11 +62,9 @@ export function ProjectCard({ project, index, onOpen, className }: ProjectCardPr
         </span>
       </motion.div>
 
-      <button
-        type="button"
-        onClick={onOpen}
+      <Link
+        to={`/projetos/${project.slug}`}
         data-cursor={PROJECT_CURSOR}
-        aria-haspopup="dialog"
         aria-label={`Ver projeto ${project.title}`}
         className="absolute inset-0 z-10 focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:outline-none focus-visible:ring-inset"
       />

@@ -1,9 +1,11 @@
 import { Container } from '@/components/layout/Container'
 import { Reveal } from '@/components/motion/Reveal'
 import { Link } from '@/components/ui/Link'
-import { siteConfig } from '@/lib/constants/site'
+import { useSiteConfig } from '@/app/providers/site-settings-context'
 
 export function Footer() {
+  const site = useSiteConfig()
+
   return (
     <footer className="border-t border-border/60 py-10">
       <Container>
@@ -12,10 +14,10 @@ export function Footer() {
           amount={0.4}
         >
           <p className="caption text-muted-foreground">
-            © {new Date().getFullYear()} {siteConfig.name}
+            © {new Date().getFullYear()} {site.name}
           </p>
           <div className="flex gap-5">
-            {siteConfig.socials.map((social) => (
+            {site.socials.map((social) => (
               <Link
                 key={social.href}
                 href={social.href}

@@ -1,12 +1,19 @@
 import { ArrowUpRightIcon } from 'lucide-react'
+import { useSiteConfig } from '@/app/providers/site-settings-context'
 import { Container } from '@/components/layout/Container'
 import { Reveal } from '@/components/motion/Reveal'
 import { Link } from '@/components/ui/Link'
 import { contactContent } from '@/features/contact/data/contact'
-import { siteConfig } from '@/lib/constants/site'
 
 export function ContactInfo() {
-  const { location, phone, email } = contactContent
+  const site = useSiteConfig()
+  const { location } = contactContent
+  const email = site.email
+  const phoneValue = site.phone ?? contactContent.phone.value
+  const phoneHref = site.phoneHref ?? contactContent.phone.href
+  const locationValue = site.location.city
+    ? `${site.location.city},\n${site.location.country === 'BR' ? 'Brasil' : site.location.country}`
+    : location.value
 
   const columns = [
     {
@@ -14,7 +21,7 @@ export function ContactInfo() {
       label: 'Social',
       content: (
         <ul className="mt-4 flex flex-col gap-2">
-          {siteConfig.socials.map((social) => (
+          {site.socials.map((social) => (
             <li key={social.label}>
               <Link
                 href={social.href}
@@ -33,19 +40,19 @@ export function ContactInfo() {
       label: location.label,
       content: (
         <p className="mt-4 text-sm font-bold tracking-[0.06em] whitespace-pre-line text-foreground uppercase">
-          {location.value}
+          {locationValue}
         </p>
       ),
     },
     {
       key: 'phone',
-      label: phone.label,
+      label: contactContent.phone.label,
       content: (
         <Link
-          href={phone.href}
+          href={phoneHref}
           className="mt-4 inline-block text-sm font-bold tracking-[0.06em] text-foreground uppercase no-underline hover:no-underline"
         >
-          {phone.value}
+          {phoneValue}
         </Link>
       ),
     },

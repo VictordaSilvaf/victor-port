@@ -4,10 +4,11 @@ import { Contact } from '@/features/home/components/Contact'
 import { Experience } from '@/features/home/components/Experience'
 import { Hero } from '@/features/home/components/Hero'
 import { SelectedWorks } from '@/features/home/components/SelectedWorks'
-import { siteConfig } from '@/lib/constants/site'
+import { useSiteConfig } from '@/app/providers/site-settings-context'
 
 export function HomePage() {
-  const { home } = siteConfig.routes
+  const site = useSiteConfig()
+  const { home } = site.routes
 
   return (
     <>

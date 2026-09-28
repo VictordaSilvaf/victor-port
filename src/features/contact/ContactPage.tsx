@@ -1,12 +1,13 @@
+import { useSiteConfig } from '@/app/providers/site-settings-context'
 import { Container } from '@/components/layout/Container'
 import { Seo } from '@/components/seo'
 import { ContactForm } from '@/features/contact/components/ContactForm'
 import { ContactInfo } from '@/features/contact/components/ContactInfo'
 import { ContactVisual } from '@/features/contact/components/ContactVisual'
-import { siteConfig } from '@/lib/constants/site'
 
 export function ContactPage() {
-  const { contact } = siteConfig.routes
+  const site = useSiteConfig()
+  const { contact } = site.routes
 
   return (
     <>

@@ -1,11 +1,13 @@
 import { ArrowRightIcon } from 'lucide-react'
+import { useSiteConfig } from '@/app/providers/site-settings-context'
 import { Container } from '@/components/layout/Container'
 import { Reveal } from '@/components/motion/Reveal'
 import { Button } from '@/components/ui/button'
 import { Link } from '@/components/ui/Link'
-import { siteConfig } from '@/lib/constants/site'
 
 export function Contact() {
+  const site = useSiteConfig()
+
   return (
     <section id="contact" className="py-[var(--space-section)]">
       <Container className="text-center">
@@ -27,10 +29,10 @@ export function Contact() {
               </Link>
             </Button>
             <Link
-              href={`mailto:${siteConfig.email}`}
+              href={`mailto:${site.email}`}
               className="caption text-muted-foreground"
             >
-              {siteConfig.email}
+              {site.email}
             </Link>
           </div>
         </Reveal>
