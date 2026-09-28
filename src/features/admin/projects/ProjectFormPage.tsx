@@ -148,6 +148,8 @@ function ProjectFormFields({
     () => project?.tags?.map((item) => item.id) ?? [],
   )
   const [uploading, setUploading] = useState(false)
+  const [coverPreview, setCoverPreview] = useState<string | undefined>()
+  const [thumbPreview, setThumbPreview] = useState<string | undefined>()
 
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -206,6 +208,10 @@ function ProjectFormFields({
       if (isNew || !projectId) {
         throw new Error('Guarde o projeto antes de enviar mídia')
       }
+      const localPreview = URL.createObjectURL(file)
+      if (kind === 'cover') setCoverPreview(localPreview)
+      if (kind === 'thumbnail') setThumbPreview(localPreview)
+
       setUploading(true)
       try {
         const uploaded = await uploadFile(file)
@@ -216,11 +222,16 @@ function ProjectFormFields({
           if (uploaded.path) {
             await patchAdminProject(projectId, { thumbnail: uploaded.path })
           }
+          const remote =
+            uploaded.thumbnail_url || uploaded.display_url || uploaded.url
+          if (remote) setThumbPreview(remote)
         } else {
           await setProjectCover(projectId, uploaded.id)
           if (uploaded.path) {
             await patchAdminProject(projectId, { cover: uploaded.path })
           }
+          const remote = uploaded.display_url || uploaded.url
+          if (remote) setCoverPreview(remote)
         }
         return uploaded
       } finally {
@@ -234,7 +245,13 @@ function ProjectFormFields({
       })
     },
     onError: (error) => {
-      toast.error(error instanceof Error ? error.message : 'Falha no upload')
+      toast.error(
+        error instanceof ApiError
+          ? error.message
+          : error instanceof Error
+            ? error.message
+            : 'Falha no upload',
+      )
     },
   })
 
@@ -249,13 +266,15 @@ function ProjectFormFields({
   })
 
   const coverUrl =
-    project?.cover_url && /^https?:\/\//i.test(project.cover_url)
+    coverPreview ||
+    (project?.cover_url && /^https?:\/\//i.test(project.cover_url)
       ? project.cover_url
-      : undefined
+      : undefined)
   const thumbUrl =
-    project?.thumbnail_url && /^https?:\/\//i.test(project.thumbnail_url)
+    thumbPreview ||
+    (project?.thumbnail_url && /^https?:\/\//i.test(project.thumbnail_url)
       ? project.thumbnail_url
-      : undefined
+      : undefined)
 
   const taxonomyGroups = useMemo(
     () => [

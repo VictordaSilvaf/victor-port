@@ -1,4 +1,4 @@
-import { apiFetch, getApiBaseUrl } from '@/lib/api/client'
+import { getApiBaseUrl, ApiError } from '@/lib/api/client'
 import { getAccessToken } from '@/lib/auth/token-store'
 
 export type UploadResult = {
@@ -10,33 +10,35 @@ export type UploadResult = {
   processing_status?: string | null
 }
 
+/**
+ * Upload multipart without forcing Content-Type (browser sets boundary).
+ * Prefer this over apiFetch+FormData for Swoole reliability.
+ */
 export async function uploadFile(file: File): Promise<UploadResult> {
-  const form = new FormData()
-  form.append('file', file)
-  return apiFetch<UploadResult>('/admin/uploads', {
-    method: 'POST',
-    body: form,
-  })
-}
-
-/** Low-level helper if FormData + Content-Type needs full control */
-export async function uploadFileRaw(file: File): Promise<UploadResult> {
   const token = getAccessToken()
+  const form = new FormData()
+  form.append('file', file, file.name)
+
   const response = await fetch(`${getApiBaseUrl()}/api/v1/admin/uploads`, {
     method: 'POST',
     headers: {
       Accept: 'application/json',
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
     },
-    body: (() => {
-      const form = new FormData()
-      form.append('file', file)
-      return form
-    })(),
+    body: form,
   })
-  const payload = await response.json()
+
+  const payload = (await response.json().catch(() => null)) as
+    | (UploadResult & { message?: string; errors?: Record<string, string[]> })
+    | null
+
   if (!response.ok) {
-    throw new Error(payload?.message || 'Upload failed')
+    throw new ApiError(
+      payload?.message || `Upload failed (${response.status})`,
+      response.status,
+      payload?.errors,
+    )
   }
+
   return payload as UploadResult
 }
