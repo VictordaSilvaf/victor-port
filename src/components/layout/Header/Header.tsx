@@ -52,7 +52,7 @@ export function Header() {
     <>
       <header
         className={cn(
-          'top-0 z-50 w-screen transition-[color,background-color] duration-300',
+          'top-0 z-50 w-full transition-[color,background-color] duration-300',
           menuOpen ? 'fixed text-foreground' : 'absolute',
         )}
       >
