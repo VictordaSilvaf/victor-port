@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useForm } from 'react-hook-form'
@@ -13,9 +13,6 @@ import {
   removeProjectImage,
   setProjectCover,
   setProjectThumbnail,
-  syncProjectCategories,
-  syncProjectTags,
-  syncProjectTechnologies,
   updateAdminProject,
 } from '@/lib/api/admin-projects'
 import { uploadFile } from '@/lib/api/admin-uploads'
@@ -25,7 +22,8 @@ import {
   listTechnologies,
 } from '@/lib/api/admin-users'
 import { ApiError } from '@/lib/api/client'
-import { PageHeader } from '@/features/admin/shared/PageHeader'
+import type { ProjectDetail, TaxonomyItem } from '@/lib/api/types'
+import { EmptyState, PageHeader } from '@/features/admin/shared/PageHeader'
 import { PermissionGate } from '@/features/admin/shared/PermissionGate'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -56,11 +54,22 @@ const schema = z.object({
 
 type FormValues = z.infer<typeof schema>
 
+function projectToFormValues(project?: ProjectDetail): FormValues {
+  return {
+    title: project?.title ?? '',
+    slug: project?.slug ?? '',
+    description: project?.description ?? '',
+    content: project?.content ?? '',
+    repository_url: project?.repository_url ?? '',
+    demo_url: project?.demo_url ?? '',
+    status: (project?.status as FormValues['status']) || 'draft',
+    featured: Boolean(project?.featured),
+  }
+}
+
 export function ProjectFormPage() {
   const { id } = useParams()
   const isNew = !id || id === 'new'
-  const navigate = useNavigate()
-  const queryClient = useQueryClient()
 
   const projectQuery = useQuery({
     queryKey: ['admin', 'project', id],
@@ -81,42 +90,69 @@ export function ProjectFormPage() {
     queryFn: listTags,
   })
 
-  const [categoryIds, setCategoryIds] = useState<string[]>([])
-  const [technologyIds, setTechnologyIds] = useState<string[]>([])
-  const [tagIds, setTagIds] = useState<string[]>([])
+  if (!isNew && projectQuery.isLoading) {
+    return <Skeleton className="h-96 w-full" />
+  }
+
+  if (!isNew && (projectQuery.isError || !projectQuery.data)) {
+    return (
+      <EmptyState
+        title="Projeto não encontrado"
+        description={
+          projectQuery.error instanceof ApiError
+            ? projectQuery.error.message
+            : 'Não foi possível carregar o projeto para edição.'
+        }
+        actionHref="/admin/projects"
+        actionLabel="Voltar à lista"
+      />
+    )
+  }
+
+  return (
+    <ProjectFormFields
+      key={projectQuery.data?.id ?? 'new'}
+      isNew={isNew}
+      project={projectQuery.data}
+      categories={categoriesQuery.data ?? []}
+      technologies={technologiesQuery.data ?? []}
+      tags={tagsQuery.data ?? []}
+    />
+  )
+}
+
+function ProjectFormFields({
+  isNew,
+  project,
+  categories,
+  technologies,
+  tags,
+}: {
+  isNew: boolean
+  project?: ProjectDetail
+  categories: TaxonomyItem[]
+  technologies: TaxonomyItem[]
+  tags: TaxonomyItem[]
+}) {
+  const navigate = useNavigate()
+  const queryClient = useQueryClient()
+  const projectId = project?.id
+
+  const [categoryIds, setCategoryIds] = useState<string[]>(
+    () => project?.categories?.map((item) => item.id) ?? [],
+  )
+  const [technologyIds, setTechnologyIds] = useState<string[]>(
+    () => project?.technologies?.map((item) => item.id) ?? [],
+  )
+  const [tagIds, setTagIds] = useState<string[]>(
+    () => project?.tags?.map((item) => item.id) ?? [],
+  )
   const [uploading, setUploading] = useState(false)
 
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
-    defaultValues: {
-      title: '',
-      slug: '',
-      description: '',
-      content: '',
-      repository_url: '',
-      demo_url: '',
-      status: 'draft',
-      featured: false,
-    },
+    defaultValues: projectToFormValues(project),
   })
-
-  useEffect(() => {
-    const project = projectQuery.data
-    if (!project) return
-    form.reset({
-      title: project.title,
-      slug: project.slug,
-      description: project.description ?? '',
-      content: project.content ?? '',
-      repository_url: project.repository_url ?? '',
-      demo_url: project.demo_url ?? '',
-      status: (project.status as FormValues['status']) || 'draft',
-      featured: Boolean(project.featured),
-    })
-    setCategoryIds(project.categories?.map((item) => item.id) ?? [])
-    setTechnologyIds(project.technologies?.map((item) => item.id) ?? [])
-    setTagIds(project.tags?.map((item) => item.id) ?? [])
-  }, [projectQuery.data, form])
 
   const saveMutation = useMutation({
     mutationFn: async (values: FormValues) => {
@@ -127,6 +163,9 @@ export function ProjectFormPage() {
         content: values.content || null,
         repository_url: values.repository_url || null,
         demo_url: values.demo_url || null,
+        // Preserve existing media paths on full PUT (API replaces them when omitted).
+        thumbnail: project?.thumbnail ?? null,
+        cover: project?.cover ?? null,
         status: values.status,
         featured: values.featured,
         categories: categoryIds,
@@ -134,13 +173,22 @@ export function ProjectFormPage() {
         tags: tagIds,
       }
       if (isNew) return createAdminProject(body)
-      return updateAdminProject(id!, body)
+      return updateAdminProject(projectId!, body)
     },
-    onSuccess: async (project) => {
+    onSuccess: async (saved) => {
       toast.success(isNew ? 'Projeto criado' : 'Projeto atualizado')
       await queryClient.invalidateQueries({ queryKey: ['admin', 'projects'] })
       await queryClient.invalidateQueries({ queryKey: ['admin', 'project-stats'] })
-      navigate(`/admin/projects/${project.id}`)
+      await queryClient.invalidateQueries({
+        queryKey: ['admin', 'project', saved.id],
+      })
+      form.reset(projectToFormValues(saved))
+      setCategoryIds(saved.categories?.map((item) => item.id) ?? [])
+      setTechnologyIds(saved.technologies?.map((item) => item.id) ?? [])
+      setTagIds(saved.tags?.map((item) => item.id) ?? [])
+      if (isNew) {
+        navigate(`/admin/projects/${saved.id}`, { replace: true })
+      }
     },
     onError: (error) => {
       toast.error(error instanceof ApiError ? error.message : 'Falha ao guardar')
@@ -155,21 +203,23 @@ export function ProjectFormPage() {
       file: File
       kind: 'thumbnail' | 'cover' | 'gallery'
     }) => {
-      if (isNew || !id) throw new Error('Guarde o projeto antes de enviar mídia')
+      if (isNew || !projectId) {
+        throw new Error('Guarde o projeto antes de enviar mídia')
+      }
       setUploading(true)
       try {
         const uploaded = await uploadFile(file)
         if (kind === 'gallery') {
-          await addProjectImage(id, { image_id: uploaded.id })
+          await addProjectImage(projectId, { image_id: uploaded.id })
         } else if (kind === 'thumbnail') {
-          await setProjectThumbnail(id, uploaded.id)
+          await setProjectThumbnail(projectId, uploaded.id)
           if (uploaded.path) {
-            await patchAdminProject(id, { thumbnail: uploaded.path })
+            await patchAdminProject(projectId, { thumbnail: uploaded.path })
           }
         } else {
-          await setProjectCover(id, uploaded.id)
+          await setProjectCover(projectId, uploaded.id)
           if (uploaded.path) {
-            await patchAdminProject(id, { cover: uploaded.path })
+            await patchAdminProject(projectId, { cover: uploaded.path })
           }
         }
         return uploaded
@@ -179,7 +229,9 @@ export function ProjectFormPage() {
     },
     onSuccess: async () => {
       toast.success('Mídia atualizada')
-      await queryClient.invalidateQueries({ queryKey: ['admin', 'project', id] })
+      await queryClient.invalidateQueries({
+        queryKey: ['admin', 'project', projectId],
+      })
     },
     onError: (error) => {
       toast.error(error instanceof Error ? error.message : 'Falha no upload')
@@ -187,64 +239,54 @@ export function ProjectFormPage() {
   })
 
   const removeImageMutation = useMutation({
-    mutationFn: (imageId: string) => removeProjectImage(id!, imageId),
+    mutationFn: (imageId: string) => removeProjectImage(projectId!, imageId),
     onSuccess: async () => {
       toast.success('Imagem removida')
-      await queryClient.invalidateQueries({ queryKey: ['admin', 'project', id] })
+      await queryClient.invalidateQueries({
+        queryKey: ['admin', 'project', projectId],
+      })
     },
   })
 
-  const syncTaxonomies = useMutation({
-    mutationFn: async () => {
-      if (!id || isNew) return
-      await syncProjectCategories(id, categoryIds)
-      await syncProjectTechnologies(id, technologyIds)
-      await syncProjectTags(id, tagIds)
-    },
-    onSuccess: async () => {
-      toast.success('Taxonomias sincronizadas')
-      await queryClient.invalidateQueries({ queryKey: ['admin', 'project', id] })
-    },
-  })
-
-  const project = projectQuery.data
-  const coverUrl = project?.cover_url || undefined
-  const thumbUrl = project?.thumbnail_url || undefined
+  const coverUrl =
+    project?.cover_url && /^https?:\/\//i.test(project.cover_url)
+      ? project.cover_url
+      : undefined
+  const thumbUrl =
+    project?.thumbnail_url && /^https?:\/\//i.test(project.thumbnail_url)
+      ? project.thumbnail_url
+      : undefined
 
   const taxonomyGroups = useMemo(
     () => [
       {
         label: 'Categorias',
-        items: categoriesQuery.data ?? [],
+        items: categories,
         selected: categoryIds,
         setSelected: setCategoryIds,
       },
       {
         label: 'Tecnologias',
-        items: technologiesQuery.data ?? [],
+        items: technologies,
         selected: technologyIds,
         setSelected: setTechnologyIds,
       },
       {
         label: 'Tags',
-        items: tagsQuery.data ?? [],
+        items: tags,
         selected: tagIds,
         setSelected: setTagIds,
       },
     ],
     [
-      categoriesQuery.data,
-      technologiesQuery.data,
-      tagsQuery.data,
+      categories,
+      technologies,
+      tags,
       categoryIds,
       technologyIds,
       tagIds,
     ],
   )
-
-  if (!isNew && projectQuery.isLoading) {
-    return <Skeleton className="h-96 w-full" />
-  }
 
   return (
     <div>
@@ -253,7 +295,7 @@ export function ProjectFormPage() {
         description={
           isNew
             ? 'Crie e publique um case study.'
-            : 'Atualize conteúdo, mídia e taxonomias.'
+            : 'Atualize o conteúdo actual — os campos já vêm preenchidos.'
         }
         actions={
           <Button variant="outline" asChild>
@@ -378,7 +420,9 @@ export function ProjectFormPage() {
                 <Select
                   value={form.watch('status')}
                   onValueChange={(value) =>
-                    form.setValue('status', value as FormValues['status'])
+                    form.setValue('status', value as FormValues['status'], {
+                      shouldDirty: true,
+                    })
                   }
                 >
                   <SelectTrigger>
@@ -395,7 +439,9 @@ export function ProjectFormPage() {
                 <Checkbox
                   checked={form.watch('featured')}
                   onCheckedChange={(checked) =>
-                    form.setValue('featured', Boolean(checked))
+                    form.setValue('featured', Boolean(checked), {
+                      shouldDirty: true,
+                    })
                   }
                 />
                 Featured
@@ -415,19 +461,8 @@ export function ProjectFormPage() {
           </Card>
 
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
+            <CardHeader>
               <CardTitle className="text-base">Taxonomias</CardTitle>
-              {!isNew ? (
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="outline"
-                  onClick={() => syncTaxonomies.mutate()}
-                  disabled={syncTaxonomies.isPending}
-                >
-                  Sync
-                </Button>
-              ) : null}
             </CardHeader>
             <CardContent className="space-y-4">
               {taxonomyGroups.map((group) => (
