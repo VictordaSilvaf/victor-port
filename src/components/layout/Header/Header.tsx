@@ -3,6 +3,7 @@ import { Link } from 'react-router'
 import { ArrowRightIcon } from 'lucide-react'
 import { Container } from '@/components/layout/Container'
 import { Typewriter } from '@/components/motion/Typewriter'
+import { ThemeToggle } from '@/components/theme/ThemeToggle'
 import { Button } from '@/components/ui/button'
 import { Magnetic } from '@/components/ui/Magnetic'
 import { cn } from '@/lib/utils/cn'
@@ -88,7 +89,8 @@ export function Header() {
             <MenuButton open={menuOpen} onClick={toggleMenu} />
           </Magnetic>
 
-          <div className="flex flex-1 justify-end">
+          <div className="flex flex-1 items-center justify-end gap-2 md:gap-3">
+            <ThemeToggle className="size-11 rounded-lg md:size-12" />
             <Button
               variant="outline"
               size="lg"

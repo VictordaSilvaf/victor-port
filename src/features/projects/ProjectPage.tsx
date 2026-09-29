@@ -18,7 +18,7 @@ export function ProjectPage() {
   if (state.status === 'loading') {
     return (
       <div
-        className="min-h-dvh bg-neutral-950"
+        className="min-h-dvh bg-background"
         aria-busy="true"
         aria-label="Carregando projeto"
       />

@@ -7,6 +7,7 @@ import {
 import { useAuth } from '@/features/admin/auth/auth-context'
 import { adminNavItems } from '@/features/admin/shared/nav'
 import { can, canAny } from '@/lib/auth/permissions'
+import { ThemeToggle } from '@/components/theme/ThemeToggle'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import {
@@ -162,12 +163,15 @@ export function AdminLayout() {
             <p className="text-sm text-muted-foreground">
               Painel de gestão do portfólio
             </p>
-            <Button variant="outline" size="sm" asChild>
-              <a href="/" target="_blank" rel="noreferrer">
-                Site
-                <ExternalLinkIcon />
-              </a>
-            </Button>
+            <div className="flex items-center gap-2">
+              <ThemeToggle size="icon-sm" />
+              <Button variant="outline" size="sm" asChild>
+                <a href="/" target="_blank" rel="noreferrer">
+                  Site
+                  <ExternalLinkIcon />
+                </a>
+              </Button>
+            </div>
           </div>
         </header>
         <div className={cn('flex flex-1 flex-col gap-4 p-4 md:p-6')}>

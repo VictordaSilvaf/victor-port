@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { Turnstile } from '@marsidev/react-turnstile'
 import { useSiteConfig } from '@/app/providers/site-settings-context'
+import { useTheme } from '@/app/providers/useTheme'
 import { Reveal } from '@/components/motion/Reveal'
 import { Link } from '@/components/ui/Link'
 import { contactContent } from '@/features/contact/data/contact'
@@ -8,7 +9,7 @@ import { ApiError, submitContact } from '@/lib/api'
 import { cn } from '@/lib/utils/cn'
 
 const fieldClass =
-  'w-full rounded-none border-0 bg-[oklch(0.94_0_0)] px-4 py-4 text-base text-foreground outline-none transition-[box-shadow,background-color] duration-300 placeholder:text-foreground/40 focus:bg-[oklch(0.92_0_0)] focus:ring-2 focus:ring-foreground/15'
+  'w-full rounded-none border-0 bg-muted px-4 py-4 text-base text-foreground outline-none transition-[box-shadow,background-color] duration-300 placeholder:text-muted-foreground focus:bg-muted/80 focus:ring-2 focus:ring-foreground/15'
 
 const turnstileSiteKey =
   (import.meta.env.VITE_TURNSTILE_SITE_KEY as string | undefined)?.trim() || ''
@@ -17,6 +18,7 @@ type FormStatus = 'idle' | 'submitting' | 'sent' | 'error' | 'rateLimited'
 
 export function ContactForm() {
   const site = useSiteConfig()
+  const { resolvedTheme } = useTheme()
   const { title, note, formLead, fields, submitLabel, successMessage } =
     contactContent
   const email = site.email
@@ -170,7 +172,7 @@ export function ContactForm() {
               onSuccess={setTurnstileToken}
               onExpire={() => setTurnstileToken('')}
               onError={() => setTurnstileToken('')}
-              options={{ theme: 'light' }}
+              options={{ theme: resolvedTheme }}
             />
           </div>
         ) : null}

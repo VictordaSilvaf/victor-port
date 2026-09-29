@@ -71,10 +71,16 @@
 
   html {
     @apply font-sans;
+    color-scheme: light;
+  }
+
+  html.dark {
+    color-scheme: dark;
   }
 
   body {
     @apply bg-background text-foreground antialiased;
+    transition: background-color 200ms ease, color 200ms ease;
   }
 
   @media (pointer: fine) {

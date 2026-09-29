@@ -114,7 +114,7 @@ export default function MenuContent({ open, onClose }: MenuContentProps) {
       {open ? (
         <motion.div
           id="site-menu"
-          className="fixed inset-0 z-[45] flex flex-col bg-[oklch(0.96_0_0)] text-foreground"
+          className="fixed inset-0 z-[45] flex flex-col bg-background text-foreground"
           role="dialog"
           aria-modal="true"
           aria-label="Menu de navegação"
@@ -123,7 +123,7 @@ export default function MenuContent({ open, onClose }: MenuContentProps) {
           animate={reducedMotion ? { opacity: 1 } : 'visible'}
           exit={reducedMotion ? { opacity: 0 } : 'exit'}
         >
-          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_50%_0%,oklch(0.92_0_0)_0%,transparent_55%)]" />
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_50%_0%,var(--color-muted)_0%,transparent_55%)] opacity-70" />
 
           <nav className="relative flex flex-1 items-center justify-center px-6">
             <motion.ul
