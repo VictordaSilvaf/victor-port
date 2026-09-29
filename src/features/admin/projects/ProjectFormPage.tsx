@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useForm } from 'react-hook-form'
@@ -15,6 +15,11 @@ import {
   setProjectThumbnail,
   updateAdminProject,
 } from '@/lib/api/admin-projects'
+import {
+  createCategory,
+  createTag,
+  createTechnology,
+} from '@/lib/api/admin-taxonomies'
 import { uploadFile } from '@/lib/api/admin-uploads'
 import {
   listCategories,
@@ -23,8 +28,10 @@ import {
 } from '@/lib/api/admin-users'
 import { ApiError } from '@/lib/api/client'
 import type { ProjectDetail, TaxonomyItem } from '@/lib/api/types'
+import { MarkdownEditor } from '@/features/admin/shared/MarkdownEditor'
 import { EmptyState, PageHeader } from '@/features/admin/shared/PageHeader'
 import { PermissionGate } from '@/features/admin/shared/PermissionGate'
+import { TaxonomyField } from '@/features/admin/projects/TaxonomyField'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -65,6 +72,11 @@ function projectToFormValues(project?: ProjectDetail): FormValues {
     status: (project?.status as FormValues['status']) || 'draft',
     featured: Boolean(project?.featured),
   }
+}
+
+function mergeTaxonomy(list: TaxonomyItem[], item: TaxonomyItem) {
+  if (list.some((entry) => entry.id === item.id)) return list
+  return [...list, item].sort((a, b) => a.name.localeCompare(b.name, 'pt'))
 }
 
 export function ProjectFormPage() {
@@ -109,14 +121,23 @@ export function ProjectFormPage() {
     )
   }
 
+  const taxonomiesReady =
+    !categoriesQuery.isLoading &&
+    !technologiesQuery.isLoading &&
+    !tagsQuery.isLoading
+
+  if (!taxonomiesReady) {
+    return <Skeleton className="h-96 w-full" />
+  }
+
   return (
     <ProjectFormFields
       key={projectQuery.data?.id ?? 'new'}
       isNew={isNew}
       project={projectQuery.data}
-      categories={categoriesQuery.data ?? []}
-      technologies={technologiesQuery.data ?? []}
-      tags={tagsQuery.data ?? []}
+      initialCategories={categoriesQuery.data ?? []}
+      initialTechnologies={technologiesQuery.data ?? []}
+      initialTags={tagsQuery.data ?? []}
     />
   )
 }
@@ -124,20 +145,23 @@ export function ProjectFormPage() {
 function ProjectFormFields({
   isNew,
   project,
-  categories,
-  technologies,
-  tags,
+  initialCategories,
+  initialTechnologies,
+  initialTags,
 }: {
   isNew: boolean
   project?: ProjectDetail
-  categories: TaxonomyItem[]
-  technologies: TaxonomyItem[]
-  tags: TaxonomyItem[]
+  initialCategories: TaxonomyItem[]
+  initialTechnologies: TaxonomyItem[]
+  initialTags: TaxonomyItem[]
 }) {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const projectId = project?.id
 
+  const [categories, setCategories] = useState(initialCategories)
+  const [technologies, setTechnologies] = useState(initialTechnologies)
+  const [tags, setTags] = useState(initialTags)
   const [categoryIds, setCategoryIds] = useState<string[]>(
     () => project?.categories?.map((item) => item.id) ?? [],
   )
@@ -165,7 +189,6 @@ function ProjectFormFields({
         content: values.content || null,
         repository_url: values.repository_url || null,
         demo_url: values.demo_url || null,
-        // Preserve existing media paths on full PUT (API replaces them when omitted).
         thumbnail: project?.thumbnail ?? null,
         cover: project?.cover ?? null,
         status: values.status,
@@ -181,6 +204,7 @@ function ProjectFormFields({
       toast.success(isNew ? 'Projeto criado' : 'Projeto atualizado')
       await queryClient.invalidateQueries({ queryKey: ['admin', 'projects'] })
       await queryClient.invalidateQueries({ queryKey: ['admin', 'project-stats'] })
+      await queryClient.invalidateQueries({ queryKey: ['taxonomies'] })
       await queryClient.invalidateQueries({
         queryKey: ['admin', 'project', saved.id],
       })
@@ -276,37 +300,6 @@ function ProjectFormFields({
       ? project.thumbnail_url
       : undefined)
 
-  const taxonomyGroups = useMemo(
-    () => [
-      {
-        label: 'Categorias',
-        items: categories,
-        selected: categoryIds,
-        setSelected: setCategoryIds,
-      },
-      {
-        label: 'Tecnologias',
-        items: technologies,
-        selected: technologyIds,
-        setSelected: setTechnologyIds,
-      },
-      {
-        label: 'Tags',
-        items: tags,
-        selected: tagIds,
-        setSelected: setTagIds,
-      },
-    ],
-    [
-      categories,
-      technologies,
-      tags,
-      categoryIds,
-      technologyIds,
-      tagIds,
-    ],
-  )
-
   return (
     <div>
       <PageHeader
@@ -342,8 +335,14 @@ function ProjectFormFields({
               <Field label="Descrição">
                 <Textarea rows={3} {...form.register('description')} />
               </Field>
-              <Field label="Content (markdown)">
-                <Textarea rows={10} {...form.register('content')} />
+              <Field label="Content">
+                <MarkdownEditor
+                  value={form.watch('content') ?? ''}
+                  onChange={(next) =>
+                    form.setValue('content', next, { shouldDirty: true })
+                  }
+                  placeholder="Case study em markdown — títulos, listas, links…"
+                />
               </Field>
               <div className="grid gap-4 sm:grid-cols-2">
                 <Field label="Demo URL">
@@ -483,39 +482,38 @@ function ProjectFormFields({
             <CardHeader>
               <CardTitle className="text-base">Taxonomias</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              {taxonomyGroups.map((group) => (
-                <div key={group.label}>
-                  <p className="mb-2 text-sm font-medium">{group.label}</p>
-                  <div className="max-h-40 space-y-2 overflow-auto rounded-lg border p-2">
-                    {group.items.length === 0 ? (
-                      <p className="text-xs text-muted-foreground">Vazio</p>
-                    ) : (
-                      group.items.map((item) => {
-                        const checked = group.selected.includes(item.id)
-                        return (
-                          <label
-                            key={item.id}
-                            className="flex items-center gap-2 text-sm"
-                          >
-                            <Checkbox
-                              checked={checked}
-                              onCheckedChange={(value) => {
-                                group.setSelected((prev) =>
-                                  value
-                                    ? [...prev, item.id]
-                                    : prev.filter((id) => id !== item.id),
-                                )
-                              }}
-                            />
-                            {item.name}
-                          </label>
-                        )
-                      })
-                    )}
-                  </div>
-                </div>
-              ))}
+            <CardContent className="space-y-5">
+              <TaxonomyField
+                label="Categorias"
+                items={categories}
+                selected={categoryIds}
+                onSelectedChange={setCategoryIds}
+                createItem={createCategory}
+                onCreated={(item) =>
+                  setCategories((prev) => mergeTaxonomy(prev, item))
+                }
+                placeholder="Nova categoria…"
+              />
+              <TaxonomyField
+                label="Tecnologias"
+                items={technologies}
+                selected={technologyIds}
+                onSelectedChange={setTechnologyIds}
+                createItem={createTechnology}
+                onCreated={(item) =>
+                  setTechnologies((prev) => mergeTaxonomy(prev, item))
+                }
+                placeholder="Nova tecnologia…"
+              />
+              <TaxonomyField
+                label="Tags"
+                items={tags}
+                selected={tagIds}
+                onSelectedChange={setTagIds}
+                createItem={createTag}
+                onCreated={(item) => setTags((prev) => mergeTaxonomy(prev, item))}
+                placeholder="Nova tag…"
+              />
             </CardContent>
           </Card>
         </div>
