@@ -90,7 +90,7 @@ export function Header() {
           </Magnetic>
 
           <div className="flex flex-1 items-center justify-end gap-2 md:gap-3">
-            <ThemeToggle className="size-11 rounded-lg md:size-12" />
+            <ThemeToggle />
             <Button
               variant="outline"
               size="lg"

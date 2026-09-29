@@ -164,7 +164,7 @@ export function AdminLayout() {
               Painel de gestão do portfólio
             </p>
             <div className="flex items-center gap-2">
-              <ThemeToggle size="icon-sm" />
+              <ThemeToggle className="size-8 md:size-8" />
               <Button variant="outline" size="sm" asChild>
                 <a href="/" target="_blank" rel="noreferrer">
                   Site
