@@ -2,6 +2,7 @@ import { Link, Navigate, useParams } from 'react-router'
 import { ArrowLeftIcon, ArrowRightIcon, ArrowUpRightIcon } from 'lucide-react'
 import { motion, useReducedMotion } from 'motion/react'
 import { Container } from '@/components/layout/Container'
+import { MarkdownContent } from '@/components/markdown/MarkdownContent'
 import { Reveal } from '@/components/motion/Reveal'
 import { Seo } from '@/components/seo'
 import { Button } from '@/components/ui/button'
@@ -89,9 +90,9 @@ export function ProjectPage() {
                 <h2 className="text-xs font-bold tracking-[0.14em] text-foreground/45 uppercase">
                   Overview
                 </h2>
-                <p className="mt-4 text-xl leading-relaxed whitespace-pre-line text-foreground/85 md:text-2xl md:leading-snug">
+                <MarkdownContent className="mt-4 max-w-3xl">
                   {overview}
-                </p>
+                </MarkdownContent>
               </Reveal>
 
               <Reveal delay={0.08}>
