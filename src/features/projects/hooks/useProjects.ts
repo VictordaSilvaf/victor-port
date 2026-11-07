@@ -56,26 +56,39 @@ export function useProjectsList() {
   return { items, ready, fromApi }
 }
 
+type ProjectPageReady = {
+  status: 'ready'
+  project: Project
+  index: number
+  prev: Project | null
+  next: Project | null
+}
+
 type ProjectPageState =
   | { status: 'loading' }
-  | {
-      status: 'ready'
-      project: Project
-      index: number
-      prev: Project | null
-      next: Project | null
-    }
+  | ProjectPageReady
   | { status: 'missing' }
 
+/** Keep last ready payload so HMR / StrictMode remounts don't blank the page. */
+const projectPageCache = new Map<string, ProjectPageReady>()
+
 export function useProjectPage(slug: string) {
-  const [state, setState] = useState<ProjectPageState>({ status: 'loading' })
+  const [state, setState] = useState<ProjectPageState>(
+    () => projectPageCache.get(slug) ?? { status: 'loading' },
+  )
 
   useEffect(() => {
     let cancelled = false
+    const cached = projectPageCache.get(slug)
+
+    // Keep current project visible while refetching; only blank on first visit.
+    if (cached) {
+      setState(cached)
+    } else {
+      setState({ status: 'loading' })
+    }
 
     async function load() {
-      setState({ status: 'loading' })
-
       try {
         const [detail, list] = await Promise.all([
           fetchProjectBySlug(slug),
@@ -91,13 +104,15 @@ export function useProjectPage(slug: string) {
               ? list.data.map(mapProjectSummary)
               : staticProjects
           const adjacent = adjacentFromList(mappedList, slug)
-          setState({
+          const ready: ProjectPageReady = {
             status: 'ready',
             project,
             index: adjacent.index >= 0 ? adjacent.index : 0,
             prev: adjacent.prev,
             next: adjacent.next,
-          })
+          }
+          projectPageCache.set(slug, ready)
+          setState(ready)
           return
         }
       } catch {
@@ -108,18 +123,21 @@ export function useProjectPage(slug: string) {
 
       const fallback = getStaticProject(slug)
       if (!fallback) {
+        projectPageCache.delete(slug)
         setState({ status: 'missing' })
         return
       }
 
       const adjacent = getStaticAdjacent(slug)
-      setState({
+      const ready: ProjectPageReady = {
         status: 'ready',
         project: fallback,
         index: adjacent.index,
         prev: adjacent.prev,
         next: adjacent.next,
-      })
+      }
+      projectPageCache.set(slug, ready)
+      setState(ready)
     }
 
     void load()

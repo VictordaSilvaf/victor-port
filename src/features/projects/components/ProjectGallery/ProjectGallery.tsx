@@ -13,26 +13,6 @@ type ProjectGalleryProps = {
   images: ProjectGalleryImage[]
 }
 
-function spanClass(index: number, total: number) {
-  if (total === 1) return 'md:col-span-12 md:row-span-2'
-  if (total === 2) return index === 0 ? 'md:col-span-7' : 'md:col-span-5'
-  if (total === 3) {
-    if (index === 0) return 'md:col-span-8 md:row-span-2'
-    return 'md:col-span-4'
-  }
-  // Bento rhythm for 4+ frames
-  const pattern = [
-    'md:col-span-7 md:row-span-2',
-    'md:col-span-5',
-    'md:col-span-5',
-    'md:col-span-7',
-    'md:col-span-4',
-    'md:col-span-4',
-    'md:col-span-4',
-  ]
-  return pattern[index % pattern.length]!
-}
-
 export function ProjectGallery({ title, images }: ProjectGalleryProps) {
   const reducedMotion = useReducedMotion()
   const [activeIndex, setActiveIndex] = useState<number | null>(null)
@@ -63,49 +43,40 @@ export function ProjectGallery({ title, images }: ProjectGalleryProps) {
   function step(delta: number) {
     setActiveIndex((current) => {
       if (current === null) return current
-      const next = (current + delta + images.length) % images.length
-      return next
+      return (current + delta + images.length) % images.length
     })
   }
 
   return (
     <section
-      className="border-t border-border/70 bg-foreground/[0.02] py-[var(--space-section)]"
+      className="border-t border-border/70 py-[var(--space-section)]"
       aria-labelledby="project-gallery-heading"
     >
       <Container>
         <Reveal>
-          <div className="flex flex-wrap items-end justify-between gap-4">
-            <div>
-              <p className="text-xs font-bold tracking-[0.14em] text-foreground/45 uppercase">
-                Galeria
-              </p>
-              <h2
-                id="project-gallery-heading"
-                className="mt-2 text-3xl font-extrabold tracking-tight uppercase md:text-5xl"
-              >
-                Frames
-              </h2>
-            </div>
-            <p className="max-w-sm text-sm leading-relaxed text-foreground/55 md:text-right">
-              {images.length}{' '}
-              {images.length === 1 ? 'imagem' : 'imagens'} de {title}
-            </p>
-          </div>
+          <h2
+            id="project-gallery-heading"
+            className="text-xs font-bold tracking-[0.14em] text-foreground/45 uppercase"
+          >
+            Galeria
+          </h2>
+          <p className="mt-2 text-sm text-foreground/55">
+            {images.length}{' '}
+            {images.length === 1 ? 'imagem' : 'imagens'}
+          </p>
         </Reveal>
 
-        <ul className="mt-10 grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-12 md:gap-4">
+        <ul className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {images.map((image, index) => (
             <Reveal
               key={image.id}
               as="li"
-              delay={Math.min(index * 0.05, 0.28)}
-              className={cn('min-h-0', spanClass(index, images.length))}
+              delay={Math.min(index * 0.04, 0.2)}
             >
               <button
                 type="button"
                 onClick={() => openAt(index)}
-                className="group relative block size-full min-h-[220px] overflow-hidden bg-neutral-950 text-left focus-visible:ring-2 focus-visible:ring-foreground/40 focus-visible:outline-none md:min-h-[280px]"
+                className="group relative block w-full overflow-hidden bg-neutral-950 text-left focus-visible:ring-2 focus-visible:ring-foreground/40 focus-visible:outline-none"
                 aria-label={
                   image.caption
                     ? `Abrir imagem: ${image.caption}`
@@ -121,25 +92,23 @@ export function ProjectGallery({ title, images }: ProjectGalleryProps) {
                   loading="lazy"
                   decoding="async"
                   className={cn(
-                    'size-full object-cover transition-[transform,filter] duration-700 ease-out',
-                    'group-hover:scale-[1.035] group-hover:brightness-110',
+                    'aspect-[4/3] w-full object-cover transition-transform duration-500 ease-out',
+                    'group-hover:scale-[1.02]',
                     reducedMotion && 'transition-none group-hover:scale-100',
                   )}
                 />
-                <span
-                  aria-hidden="true"
-                  className="pointer-events-none absolute inset-0 bg-gradient-to-t from-neutral-950/70 via-transparent to-transparent opacity-80"
-                />
-                <span className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-3 p-4 text-white">
-                  <span className="text-xs font-medium tracking-[0.16em] tabular-nums uppercase text-white/70">
-                    {String(index + 1).padStart(2, '0')}
-                  </span>
-                  {image.caption ? (
-                    <span className="max-w-[70%] truncate text-right text-sm text-white/90">
-                      {image.caption}
+                {(image.caption || images.length > 1) && (
+                  <span className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-3 bg-gradient-to-t from-neutral-950/75 to-transparent p-3 text-white">
+                    <span className="text-[11px] font-medium tracking-[0.14em] tabular-nums uppercase text-white/65">
+                      {String(index + 1).padStart(2, '0')}
                     </span>
-                  ) : null}
-                </span>
+                    {image.caption ? (
+                      <span className="max-w-[75%] truncate text-right text-xs text-white/90">
+                        {image.caption}
+                      </span>
+                    ) : null}
+                  </span>
+                )}
               </button>
             </Reveal>
           ))}
@@ -151,14 +120,14 @@ export function ProjectGallery({ title, images }: ProjectGalleryProps) {
           <motion.div
             ref={lightboxRef}
             tabIndex={-1}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-neutral-950/92 p-4 backdrop-blur-sm outline-none md:p-8"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-neutral-950/92 p-4 outline-none md:p-8"
             role="dialog"
             aria-modal="true"
             aria-label="Visualização da galeria"
             initial={reducedMotion ? false : { opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.25 }}
+            transition={{ duration: 0.2 }}
             onClick={close}
             onKeyDown={(event) => {
               if (event.key === 'Escape') close()
@@ -205,10 +174,10 @@ export function ProjectGallery({ title, images }: ProjectGalleryProps) {
             <motion.figure
               key={active.id}
               className="relative max-h-[85dvh] w-full max-w-6xl"
-              initial={reducedMotion ? false : { opacity: 0, y: 16 }}
+              initial={reducedMotion ? false : { opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 12 }}
-              transition={{ duration: 0.35, ease: EASE_OUT }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.25, ease: EASE_OUT }}
               onClick={(event) => event.stopPropagation()}
             >
               <img
