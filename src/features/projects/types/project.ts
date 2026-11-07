@@ -1,3 +1,11 @@
+export type ProjectGalleryImage = {
+  id: string
+  src: string
+  thumb?: string
+  caption?: string
+  order: number
+}
+
 export interface Project {
   slug: string
   title: string
@@ -9,4 +17,6 @@ export interface Project {
   image?: string
   url?: string
   role?: string
+  /** Project gallery frames from the API (ordered). */
+  gallery?: ProjectGalleryImage[]
 }

@@ -6,6 +6,7 @@ import { MarkdownContent } from '@/components/markdown/MarkdownContent'
 import { Reveal } from '@/components/motion/Reveal'
 import { Seo } from '@/components/seo'
 import { Button } from '@/components/ui/button'
+import { ProjectGallery } from '@/features/projects/components/ProjectGallery'
 import { useProjectPage } from '@/features/projects/hooks/useProjects'
 
 const EASE_OUT = [0.22, 1, 0.36, 1] as const
@@ -152,6 +153,10 @@ export function ProjectPage() {
             </div>
           </Container>
         </section>
+
+        {project.gallery && project.gallery.length > 0 ? (
+          <ProjectGallery title={project.title} images={project.gallery} />
+        ) : null}
 
         <section className="border-t border-border/70 py-10 md:py-14">
           <Container className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
