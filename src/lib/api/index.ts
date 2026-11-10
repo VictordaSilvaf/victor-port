@@ -1,6 +1,10 @@
 export { ApiError, apiFetch, apiUrl, getApiBaseUrl } from '@/lib/api/client'
 export { submitContact } from '@/lib/api/contact'
-export { mapProjectDetail, mapProjectSummary } from '@/lib/api/mappers'
+export {
+  mapProjectDetail,
+  mapProjectGallery,
+  mapProjectSummary,
+} from '@/lib/api/mappers'
 export { resolveProjectImage } from '@/lib/api/media'
 export {
   getProjectBySlug as fetchProjectBySlug,

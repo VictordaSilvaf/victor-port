@@ -227,7 +227,7 @@ function ProjectFormFields({
       kind,
     }: {
       file: File
-      kind: 'thumbnail' | 'cover' | 'gallery'
+      kind: 'thumbnail' | 'cover'
     }) => {
       if (isNew || !projectId) {
         throw new Error('Guarde o projeto antes de enviar mídia')
@@ -239,9 +239,7 @@ function ProjectFormFields({
       setUploading(true)
       try {
         const uploaded = await uploadFile(file)
-        if (kind === 'gallery') {
-          await addProjectImage(projectId, { image_id: uploaded.id })
-        } else if (kind === 'thumbnail') {
+        if (kind === 'thumbnail') {
           await setProjectThumbnail(projectId, uploaded.id)
           if (uploaded.path) {
             await patchAdminProject(projectId, { thumbnail: uploaded.path })
@@ -275,6 +273,63 @@ function ProjectFormFields({
           : error instanceof Error
             ? error.message
             : 'Falha no upload',
+      )
+    },
+  })
+
+  const galleryMutation = useMutation({
+    mutationFn: async (files: File[]) => {
+      if (isNew || !projectId) {
+        throw new Error('Guarde o projeto antes de enviar mídia')
+      }
+      if (files.length === 0) return { ok: 0, failed: 0 }
+
+      setUploading(true)
+      let ok = 0
+      let failed = 0
+
+      try {
+        for (let index = 0; index < files.length; index += 1) {
+          const file = files[index]!
+          try {
+            const uploaded = await uploadFile(file)
+            await addProjectImage(projectId, { image_id: uploaded.id })
+            ok += 1
+          } catch {
+            failed += 1
+          }
+        }
+        return { ok, failed, total: files.length }
+      } finally {
+        setUploading(false)
+      }
+    },
+    onSuccess: async (result) => {
+      if (!result) return
+      if (result.failed === 0) {
+        toast.success(
+          result.ok === 1
+            ? '1 imagem adicionada à galeria'
+            : `${result.ok} imagens adicionadas à galeria`,
+        )
+      } else if (result.ok === 0) {
+        toast.error('Falha ao enviar as imagens da galeria')
+      } else {
+        toast.warning(
+          `${result.ok} enviadas, ${result.failed} falharam — tente novamente nas que falharam`,
+        )
+      }
+      await queryClient.invalidateQueries({
+        queryKey: ['admin', 'project', projectId],
+      })
+    },
+    onError: (error) => {
+      toast.error(
+        error instanceof ApiError
+          ? error.message
+          : error instanceof Error
+            ? error.message
+            : 'Falha no upload da galeria',
       )
     },
   })
@@ -359,7 +414,9 @@ function ProjectFormFields({
             <Card>
               <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle className="text-base">Mídia</CardTitle>
-                {uploading || mediaMutation.isPending ? (
+                {uploading ||
+                mediaMutation.isPending ||
+                galleryMutation.isPending ? (
                   <Badge variant="outline">Uploading…</Badge>
                 ) : null}
               </CardHeader>
@@ -381,14 +438,30 @@ function ProjectFormFields({
                   />
                 </div>
                 <div>
-                  <Label>Galeria</Label>
+                  <div className="flex flex-wrap items-end justify-between gap-2">
+                    <div>
+                      <Label htmlFor="project-gallery-upload">Galeria</Label>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        Selecione várias imagens de uma vez (Ctrl/Cmd ou Shift).
+                      </p>
+                    </div>
+                    {project?.images?.length ? (
+                      <span className="text-xs text-muted-foreground tabular-nums">
+                        {project.images.length}{' '}
+                        {project.images.length === 1 ? 'imagem' : 'imagens'}
+                      </span>
+                    ) : null}
+                  </div>
                   <Input
+                    id="project-gallery-upload"
                     type="file"
                     accept="image/*"
+                    multiple
+                    disabled={galleryMutation.isPending || uploading}
                     className="mt-2"
                     onChange={(event) => {
-                      const file = event.target.files?.[0]
-                      if (file) mediaMutation.mutate({ file, kind: 'gallery' })
+                      const files = Array.from(event.target.files ?? [])
+                      if (files.length > 0) galleryMutation.mutate(files)
                       event.target.value = ''
                     }}
                   />
@@ -398,10 +471,12 @@ function ProjectFormFields({
                         key={image.id}
                         className="overflow-hidden rounded-lg border"
                       >
-                        {image.url ? (
+                        {image.url || image.thumbnail_url ? (
                           <img
-                            src={image.url}
+                            src={image.thumbnail_url || image.url || undefined}
                             alt={image.caption ?? ''}
+                            loading="lazy"
+                            decoding="async"
                             className="aspect-video w-full object-cover"
                           />
                         ) : (
@@ -414,6 +489,7 @@ function ProjectFormFields({
                             type="button"
                             size="xs"
                             variant="destructive"
+                            disabled={removeImageMutation.isPending}
                             onClick={() => removeImageMutation.mutate(image.id)}
                           >
                             Remover

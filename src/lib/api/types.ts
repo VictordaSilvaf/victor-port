@@ -10,7 +10,9 @@ export type ProjectImage = {
   caption: string | null
   order: number
   url: string | null
+  thumbnail_url?: string | null
   path: string | null
+  processing_status?: string | null
 }
 
 export type ProjectSummary = {
