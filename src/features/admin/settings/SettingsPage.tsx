@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
@@ -6,8 +6,14 @@ import {
   getAdminSiteSettings,
   updateAdminSiteSettings,
 } from '@/lib/api/admin-pages'
+import { uploadFile } from '@/lib/api/admin-uploads'
+import {
+  brandingImageUrl,
+  parseSiteBranding,
+} from '@/lib/api/branding'
 import { ApiError } from '@/lib/api/client'
-import type { SiteSettings } from '@/lib/api/types'
+import type { SiteBranding, SiteSettings } from '@/lib/api/types'
+import { AdminImageSlot } from '@/features/admin/shared/AdminImageSlot'
 import { PageHeader } from '@/features/admin/shared/PageHeader'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -29,12 +35,18 @@ type SettingsForm = {
   nav_json: string
 }
 
+type BrandingSlot = 'home_cta' | 'contact'
+
 export function SettingsPage() {
   const queryClient = useQueryClient()
   const query = useQuery({
     queryKey: ['admin', 'site-settings'],
     queryFn: getAdminSiteSettings,
   })
+
+  const [homePreview, setHomePreview] = useState<string | undefined>()
+  const [contactPreview, setContactPreview] = useState<string | undefined>()
+  const [uploadingSlot, setUploadingSlot] = useState<BrandingSlot | null>(null)
 
   const form = useForm<SettingsForm>({
     defaultValues: {
@@ -71,6 +83,12 @@ export function SettingsPage() {
       nav_json: JSON.stringify(data.nav ?? [], null, 2),
     })
   }, [query.data, form])
+
+  const branding = parseSiteBranding(query.data?.branding)
+  const homeUrl =
+    homePreview || brandingImageUrl(branding.home_cta_image_url ?? undefined)
+  const contactUrl =
+    contactPreview || brandingImageUrl(branding.contact_image_url ?? undefined)
 
   const mutation = useMutation({
     mutationFn: async (values: SettingsForm) => {
@@ -112,13 +130,97 @@ export function SettingsPage() {
     },
   })
 
+  const imageMutation = useMutation({
+    mutationFn: async ({
+      file,
+      slot,
+    }: {
+      file: File
+      slot: BrandingSlot
+    }) => {
+      const localPreview = URL.createObjectURL(file)
+      if (slot === 'home_cta') {
+        setHomePreview((prev) => {
+          if (prev?.startsWith('blob:')) URL.revokeObjectURL(prev)
+          return localPreview
+        })
+      } else {
+        setContactPreview((prev) => {
+          if (prev?.startsWith('blob:')) URL.revokeObjectURL(prev)
+          return localPreview
+        })
+      }
+
+      setUploadingSlot(slot)
+      try {
+        const uploaded = await uploadFile(file)
+        const remote =
+          brandingImageUrl(
+            uploaded.display_url || uploaded.url || undefined,
+          ) || uploaded.display_url || uploaded.url || undefined
+
+        if (!remote) {
+          throw new Error('Upload sem URL pública')
+        }
+
+        const current = parseSiteBranding(
+          queryClient.getQueryData<SiteSettings>(['admin', 'site-settings'])
+            ?.branding ?? query.data?.branding,
+        )
+
+        const nextBranding: SiteBranding = {
+          ...current,
+          ...(slot === 'home_cta'
+            ? {
+                home_cta_image_id: uploaded.id,
+                home_cta_image_url: remote,
+              }
+            : {
+                contact_image_id: uploaded.id,
+                contact_image_url: remote,
+              }),
+        }
+
+        await updateAdminSiteSettings({ branding: nextBranding })
+        return { slot, localPreview, remote }
+      } finally {
+        setUploadingSlot(null)
+      }
+    },
+    onSuccess: async (result) => {
+      toast.success(
+        result.slot === 'home_cta'
+          ? 'Imagem da home atualizada'
+          : 'Imagem de contacto atualizada',
+      )
+      await queryClient.invalidateQueries({
+        queryKey: ['admin', 'site-settings'],
+      })
+      // Keep blob until next selection; remote is already in branding after refetch.
+      if (result.slot === 'home_cta') {
+        URL.revokeObjectURL(result.localPreview)
+        setHomePreview(undefined)
+      } else {
+        URL.revokeObjectURL(result.localPreview)
+        setContactPreview(undefined)
+      }
+    },
+    onError: (error) => {
+      toast.error(
+        error instanceof ApiError || error instanceof Error
+          ? error.message
+          : 'Falha no upload da imagem',
+      )
+    },
+  })
+
   if (query.isLoading) return <Skeleton className="h-96 w-full" />
 
   return (
     <div>
       <PageHeader
         title="Site settings"
-        description="SEO, contacto, social e navegação global."
+        description="SEO, contacto, social, imagens e navegação global."
       />
       <form
         className="grid gap-4 lg:grid-cols-2"
@@ -155,6 +257,34 @@ export function SettingsPage() {
             <Field label="WhatsApp URL">
               <Input {...form.register('whatsapp')} />
             </Field>
+          </CardContent>
+        </Card>
+
+        <Card className="lg:col-span-2">
+          <CardHeader>
+            <CardTitle className="text-base">Imagens do site</CardTitle>
+          </CardHeader>
+          <CardContent className="grid gap-6 sm:grid-cols-2">
+            <AdminImageSlot
+              id="home-cta-image"
+              label="Home — secção inferior"
+              description="Retrato / imagem da secção “Vamos conversar” na home."
+              url={homeUrl}
+              uploading={uploadingSlot === 'home_cta'}
+              onFile={(file) =>
+                imageMutation.mutate({ file, slot: 'home_cta' })
+              }
+            />
+            <AdminImageSlot
+              id="contact-image"
+              label="Página de contacto"
+              description="Imagem lateral da tela de contacto."
+              url={contactUrl}
+              uploading={uploadingSlot === 'contact'}
+              onFile={(file) =>
+                imageMutation.mutate({ file, slot: 'contact' })
+              }
+            />
           </CardContent>
         </Card>
 

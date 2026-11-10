@@ -1,9 +1,12 @@
+import { useSiteConfig } from '@/app/providers/site-settings-context'
 import { Reveal } from '@/components/motion/Reveal'
 import { Parallax } from '@/components/motion/Parallax'
 import { contactContent } from '@/features/contact/data/contact'
 
 export function ContactVisual() {
+  const site = useSiteConfig()
   const { image } = contactContent
+  const src = site.contactImage || image.src
 
   return (
     <Reveal
@@ -13,10 +16,10 @@ export function ContactVisual() {
       <Parallax speed={0.18} clip className="absolute inset-0 h-full">
         <div className="h-[130%] w-full -translate-y-[12%]">
           <img
-            src={image.src}
+            src={src}
             alt={image.alt}
             className="size-full object-cover"
-            loading="eager"
+            loading="lazy"
             decoding="async"
           />
         </div>
