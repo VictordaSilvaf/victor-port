@@ -1,4 +1,7 @@
-import { resolveProjectImage } from '@/lib/api/media'
+import {
+  normalizeProcessedMediaUrl,
+  resolveProjectImage,
+} from '@/lib/api/media'
 import type { ProjectDetail, ProjectImage, ProjectSummary } from '@/lib/api/types'
 import type {
   Project,
@@ -31,17 +34,19 @@ export function mapProjectGallery(
   return [...images]
     .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
     .flatMap((image) => {
-      const src =
+      const rawSrc =
         (image.url && isAbsoluteUrl(image.url) ? image.url : undefined) ||
         (image.thumbnail_url && isAbsoluteUrl(image.thumbnail_url)
           ? image.thumbnail_url
           : undefined)
+      const src = normalizeProcessedMediaUrl(rawSrc)
       if (!src) return []
 
-      const thumb =
+      const thumb = normalizeProcessedMediaUrl(
         image.thumbnail_url && isAbsoluteUrl(image.thumbnail_url)
           ? image.thumbnail_url
-          : undefined
+          : undefined,
+      )
 
       return [
         {

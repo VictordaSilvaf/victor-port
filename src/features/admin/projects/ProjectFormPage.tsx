@@ -27,6 +27,11 @@ import {
   listTechnologies,
 } from '@/lib/api/admin-users'
 import { ApiError } from '@/lib/api/client'
+import {
+  durableCoverStoragePath,
+  durableThumbnailStoragePath,
+  normalizeProcessedMediaUrl,
+} from '@/lib/api/media'
 import type { ProjectDetail, TaxonomyItem } from '@/lib/api/types'
 import { MarkdownEditor } from '@/features/admin/shared/MarkdownEditor'
 import { EmptyState, PageHeader } from '@/features/admin/shared/PageHeader'
@@ -182,6 +187,8 @@ function ProjectFormFields({
 
   const saveMutation = useMutation({
     mutationFn: async (values: FormValues) => {
+      // Cover/thumbnail are owned by dedicated upload endpoints. Do not resend
+      // stale storage paths here — that re-locks deleted `.jpeg` originals.
       const body = {
         title: values.title,
         slug: values.slug || undefined,
@@ -189,8 +196,6 @@ function ProjectFormFields({
         content: values.content || null,
         repository_url: values.repository_url || null,
         demo_url: values.demo_url || null,
-        thumbnail: project?.thumbnail ?? null,
-        cover: project?.cover ?? null,
         status: values.status,
         featured: values.featured,
         categories: categoryIds,
@@ -241,18 +246,25 @@ function ProjectFormFields({
         const uploaded = await uploadFile(file)
         if (kind === 'thumbnail') {
           await setProjectThumbnail(projectId, uploaded.id)
-          if (uploaded.path) {
-            await patchAdminProject(projectId, { thumbnail: uploaded.path })
+          // Processing deletes the original `.jpeg`; pin the durable thumb path.
+          const durablePath = durableThumbnailStoragePath(uploaded.path)
+          if (durablePath) {
+            await patchAdminProject(projectId, { thumbnail: durablePath })
           }
-          const remote =
-            uploaded.thumbnail_url || uploaded.display_url || uploaded.url
+          const remote = normalizeProcessedMediaUrl(
+            uploaded.thumbnail_url || uploaded.display_url || uploaded.url,
+          )
           if (remote) setThumbPreview(remote)
         } else {
           await setProjectCover(projectId, uploaded.id)
-          if (uploaded.path) {
-            await patchAdminProject(projectId, { cover: uploaded.path })
+          // Prefer optimized `.jpg` master (same as backend optimizedPath).
+          const durablePath = durableCoverStoragePath(uploaded.path)
+          if (durablePath) {
+            await patchAdminProject(projectId, { cover: durablePath })
           }
-          const remote = uploaded.display_url || uploaded.url
+          const remote = normalizeProcessedMediaUrl(
+            uploaded.display_url || uploaded.url,
+          )
           if (remote) setCoverPreview(remote)
         }
         return uploaded
@@ -346,14 +358,18 @@ function ProjectFormFields({
 
   const coverUrl =
     coverPreview ||
-    (project?.cover_url && /^https?:\/\//i.test(project.cover_url)
-      ? project.cover_url
-      : undefined)
+    normalizeProcessedMediaUrl(
+      project?.cover_url && /^https?:\/\//i.test(project.cover_url)
+        ? project.cover_url
+        : undefined,
+    )
   const thumbUrl =
     thumbPreview ||
-    (project?.thumbnail_url && /^https?:\/\//i.test(project.thumbnail_url)
-      ? project.thumbnail_url
-      : undefined)
+    normalizeProcessedMediaUrl(
+      project?.thumbnail_url && /^https?:\/\//i.test(project.thumbnail_url)
+        ? project.thumbnail_url
+        : undefined,
+    )
 
   return (
     <div>
