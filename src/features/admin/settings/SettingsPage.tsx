@@ -9,6 +9,7 @@ import {
 import { uploadFile } from '@/lib/api/admin-uploads'
 import {
   brandingImageUrl,
+  brandingUrlFromUpload,
   parseSiteBranding,
 } from '@/lib/api/branding'
 import { ApiError } from '@/lib/api/client'
@@ -154,10 +155,10 @@ export function SettingsPage() {
       setUploadingSlot(slot)
       try {
         const uploaded = await uploadFile(file)
+        // Persist durable .jpg CDN URL — do not store premature .webp.
         const remote =
-          brandingImageUrl(
-            uploaded.display_url || uploaded.url || undefined,
-          ) || uploaded.display_url || uploaded.url || undefined
+          brandingUrlFromUpload(uploaded) ||
+          brandingImageUrl(uploaded.display_url || uploaded.url || undefined)
 
         if (!remote) {
           throw new Error('Upload sem URL pública')
