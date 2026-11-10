@@ -1,4 +1,9 @@
 import { brandingImageUrl } from '@/lib/api/branding'
+import {
+  defaultAboutPageContent,
+  mergeAboutPageContent,
+  type AboutPageContent,
+} from '@/features/about/lib/merge-about'
 
 const rawSiteUrl =
   (import.meta.env.VITE_SITE_URL as string | undefined)?.trim() ||
@@ -34,6 +39,8 @@ export type SiteConfig = {
   homeCtaImage?: string
   /** Contact page side visual. */
   contactImage?: string
+  /** Fully editable /sobre page content (from branding.about). */
+  aboutPage: AboutPageContent
   location: {
     city: string
     region: string
@@ -62,6 +69,7 @@ export const siteConfig: SiteConfig = {
   description:
     'Software engineer fullstack em São Paulo — Laravel, React e React Native. Arquitetura, sistemas distribuídos e produtos digitais do backend ao app nas stores.',
   ogImage: '/og.png',
+  aboutPage: defaultAboutPageContent(),
   location: {
     city: 'São Paulo',
     region: 'SP',
@@ -240,6 +248,8 @@ export function mergeSiteSettings(
         : undefined,
     ) || defaults.contactImage
 
+  const aboutPage = mergeAboutPageContent(branding?.about)
+
   return {
     ...defaults,
     name,
@@ -254,6 +264,7 @@ export function mergeSiteSettings(
     titleTemplate: `%s | ${name}`,
     homeCtaImage,
     contactImage,
+    aboutPage,
     location: {
       ...defaults.location,
       city,

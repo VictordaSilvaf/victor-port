@@ -1,6 +1,7 @@
 import { Reveal } from '@/components/motion/Reveal'
 import { Container } from '@/components/layout/Container'
-import { aboutContent, type AboutSkill } from '@/features/about/data/about'
+import { useAboutContent } from '@/features/about/hooks/useAboutContent'
+import type { AboutSkill } from '@/features/about/data/about'
 import { cn } from '@/lib/utils/cn'
 
 function SkillLevel({ level }: { level: AboutSkill['level'] }) {
@@ -19,7 +20,7 @@ function SkillLevel({ level }: { level: AboutSkill['level'] }) {
 }
 
 export function AboutSkills() {
-  const { skillsTitle, skills } = aboutContent
+  const { skillsTitle, skills } = useAboutContent()
 
   return (
     <section className="py-[var(--space-section)]">
@@ -33,7 +34,7 @@ export function AboutSkills() {
 
           <ul className="min-w-0">
             {skills.map((skill, index) => (
-              <Reveal key={skill.title} delay={index * 0.05}>
+              <Reveal key={`${skill.title}-${index}`} delay={index * 0.05}>
                 <li
                   className={cn(
                     'border-t border-foreground/10 py-8 first:border-t-0 first:pt-0 md:py-10',

@@ -5,6 +5,7 @@ import {
   LayoutDashboard,
   Settings,
   Shield,
+  UserRound,
   Users,
   type LucideIcon,
 } from 'lucide-react'
@@ -40,6 +41,12 @@ export const adminNavItems: AdminNavItem[] = [
     href: '/admin/contact',
     icon: Inbox,
     permission: 'contact.view',
+  },
+  {
+    title: 'Sobre mim',
+    href: '/admin/about',
+    icon: UserRound,
+    permission: 'site.update',
   },
   {
     title: 'Settings',

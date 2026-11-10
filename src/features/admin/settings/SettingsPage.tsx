@@ -221,7 +221,7 @@ export function SettingsPage() {
     <div>
       <PageHeader
         title="Site settings"
-        description="SEO, contacto, social, imagens e navegação global."
+        description="SEO, contacto, social, imagens e navegação global. Conteúdo da página Sobre fica em Dashboard → Sobre mim."
       />
       <form
         className="grid gap-4 lg:grid-cols-2"
