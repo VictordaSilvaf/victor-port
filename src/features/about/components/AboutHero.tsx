@@ -1,9 +1,9 @@
 import { Reveal } from '@/components/motion/Reveal'
 import { Parallax } from '@/components/motion/Parallax'
-import { aboutContent } from '@/features/about/data/about'
+import { useAboutContent } from '@/features/about/hooks/useAboutContent'
 
 export function AboutHero() {
-  const { hero, portrait } = aboutContent
+  const { hero, portrait } = useAboutContent()
 
   return (
     <section className="relative flex min-h-[88dvh] flex-col items-center justify-center px-4 pt-28 pb-8 md:px-6 md:pt-32">
@@ -24,7 +24,7 @@ export function AboutHero() {
               src={portrait.src}
               alt={portrait.alt}
               className="size-full object-cover"
-              loading="eager"
+              loading="lazy"
               decoding="async"
             />
           </div>

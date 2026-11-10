@@ -86,6 +86,8 @@ export type SiteBranding = {
   home_cta_image_url?: string | null
   contact_image_id?: string | null
   contact_image_url?: string | null
+  /** Full /sobre page CMS payload (merged over static defaults). */
+  about?: unknown
   [key: string]: unknown
 }
 

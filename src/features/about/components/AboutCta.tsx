@@ -4,10 +4,10 @@ import { Button } from '@/components/ui/button'
 import { Link } from '@/components/ui/Link'
 import { Container } from '@/components/layout/Container'
 import { useSiteConfig } from '@/app/providers/site-settings-context'
-import { aboutContent } from '@/features/about/data/about'
+import { useAboutContent } from '@/features/about/hooks/useAboutContent'
 
 export function AboutCta() {
-  const { cta } = aboutContent
+  const { cta } = useAboutContent()
   const site = useSiteConfig()
 
   return (

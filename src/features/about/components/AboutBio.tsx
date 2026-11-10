@@ -3,10 +3,10 @@ import { Reveal } from '@/components/motion/Reveal'
 import { Button } from '@/components/ui/button'
 import { Link } from '@/components/ui/Link'
 import { Container } from '@/components/layout/Container'
-import { aboutContent } from '@/features/about/data/about'
+import { useAboutContent } from '@/features/about/hooks/useAboutContent'
 
 export function AboutBio() {
-  const { bio } = aboutContent
+  const { bio } = useAboutContent()
 
   return (
     <section className="pb-[var(--space-section)]">

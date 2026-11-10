@@ -23,6 +23,7 @@ import { PagesListPage } from '@/features/admin/pages/PagesListPage'
 import { ProjectFormPage } from '@/features/admin/projects/ProjectFormPage'
 import { ProjectsListPage } from '@/features/admin/projects/ProjectsListPage'
 import { RbacPage } from '@/features/admin/rbac/RbacPage'
+import { AboutSettingsPage } from '@/features/admin/about/AboutSettingsPage'
 import { SettingsPage } from '@/features/admin/settings/SettingsPage'
 import { UserFormPage, UsersListPage } from '@/features/admin/users/UsersPages'
 import { ContactPage } from '@/features/contact'
@@ -112,6 +113,7 @@ export const router = createBrowserRouter([
           { path: 'pages/:id', element: <PageFormPage /> },
           { path: 'contact', element: <ContactInboxPage /> },
           { path: 'contact/:id', element: <ContactDetailPage /> },
+          { path: 'about', element: <AboutSettingsPage /> },
           { path: 'settings', element: <SettingsPage /> },
           { path: 'users', element: <UsersListPage /> },
           { path: 'users/new', element: <UserFormPage /> },

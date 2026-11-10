@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
 import { Reveal } from '@/components/motion/Reveal'
 import { Container } from '@/components/layout/Container'
-import { aboutContent } from '@/features/about/data/about'
+import { useAboutContent } from '@/features/about/hooks/useAboutContent'
 
 /** Turns `**word**` markers into bold spans. */
 function RichText({ text }: { text: string }) {
@@ -31,7 +31,7 @@ export function AboutExperience() {
     jobs,
     education,
     closing,
-  } = aboutContent
+  } = useAboutContent()
 
   return (
     <section className="py-[var(--space-section)]">
@@ -46,7 +46,7 @@ export function AboutExperience() {
 
           <div className="min-w-0">
             {jobs.map((job, index) => (
-              <Reveal key={`${job.company}-${job.period}`} delay={index * 0.04}>
+              <Reveal key={`${job.company}-${job.period}-${index}`} delay={index * 0.04}>
                 <article className="border-t border-foreground/10 py-10 first:border-t-0 first:pt-0">
                   <h3 className="text-lg font-bold tracking-tight uppercase md:text-xl">
                     {job.company}
@@ -63,8 +63,8 @@ export function AboutExperience() {
                     </p>
                   </div>
                   <div className="mt-5 space-y-4 text-base leading-relaxed text-muted-foreground md:text-lg">
-                    {job.paragraphs.map((paragraph) => (
-                      <p key={paragraph.slice(0, 32)}>
+                    {job.paragraphs.map((paragraph, pIndex) => (
+                      <p key={`${index}-${pIndex}`}>
                         <RichText text={paragraph} />
                       </p>
                     ))}
@@ -73,8 +73,8 @@ export function AboutExperience() {
               </Reveal>
             ))}
 
-            {education.map((item) => (
-              <Reveal key={item.school}>
+            {education.map((item, index) => (
+              <Reveal key={`${item.school}-${index}`}>
                 <article className="border-t border-foreground/10 py-10">
                   <h3 className="text-lg font-bold tracking-tight uppercase md:text-xl">
                     {item.school}
