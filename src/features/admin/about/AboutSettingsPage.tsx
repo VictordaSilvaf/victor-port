@@ -136,7 +136,13 @@ export function AboutSettingsPage() {
   })
 
   const portraitMutation = useMutation({
-    mutationFn: async (file: File) => {
+    mutationFn: async ({
+      file,
+      draft,
+    }: {
+      file: File
+      draft: AboutPageContent
+    }) => {
       const localPreview = URL.createObjectURL(file)
       setPortraitPreview((prev) => {
         if (prev?.startsWith('blob:')) URL.revokeObjectURL(prev)
@@ -158,11 +164,11 @@ export function AboutSettingsPage() {
           queryClient.getQueryData<SiteSettings>(['admin', 'site-settings'])
             ?.branding ?? query.data?.branding,
         )
-        const merged = mergeAboutPageContent(current.about)
+        // Keep unsaved form edits; only swap portrait media fields.
         const nextAbout: AboutPageContent = {
-          ...merged,
+          ...draft,
           portrait: {
-            ...merged.portrait,
+            ...draft.portrait,
             src: remote,
             id: uploaded.id,
           },
@@ -254,7 +260,9 @@ export function AboutSettingsPage() {
               description="Retrato circular no hero da página Sobre."
               url={portraitUrl}
               uploading={uploadingPortrait || portraitMutation.isPending}
-              onFile={(file) => portraitMutation.mutate(file)}
+              onFile={(file) =>
+                portraitMutation.mutate({ file, draft: content })
+              }
             />
             <Field label="Alt text">
               <Input
