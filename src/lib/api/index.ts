@@ -18,6 +18,7 @@ export {
 } from '@/lib/api/projects'
 export {
   brandingImageUrl,
+  brandingUrlFromUpload,
   parseSiteBranding,
 } from '@/lib/api/branding'
 export { getSiteSettings } from '@/lib/api/site'

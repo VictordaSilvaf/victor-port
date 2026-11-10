@@ -1,3 +1,5 @@
+import { brandingImageUrl } from '@/lib/api/branding'
+
 const rawSiteUrl =
   (import.meta.env.VITE_SITE_URL as string | undefined)?.trim() ||
   'http://localhost:5173'
@@ -224,24 +226,19 @@ export function mergeSiteSettings(
       ? (settings.branding as Record<string, unknown>)
       : null
 
-  const rawHome =
-    typeof branding?.home_cta_image_url === 'string'
-      ? branding.home_cta_image_url.trim()
-      : ''
-  const rawContact =
-    typeof branding?.contact_image_url === 'string'
-      ? branding.contact_image_url.trim()
-      : ''
-
   const homeCtaImage =
-    (rawHome && /^https?:\/\//i.test(rawHome)
-      ? rawHome.replace(/\.jpeg$/i, '.webp')
-      : undefined) || defaults.homeCtaImage
+    brandingImageUrl(
+      typeof branding?.home_cta_image_url === 'string'
+        ? branding.home_cta_image_url
+        : undefined,
+    ) || defaults.homeCtaImage
 
   const contactImage =
-    (rawContact && /^https?:\/\//i.test(rawContact)
-      ? rawContact.replace(/\.jpeg$/i, '.webp')
-      : undefined) || defaults.contactImage
+    brandingImageUrl(
+      typeof branding?.contact_image_url === 'string'
+        ? branding.contact_image_url
+        : undefined,
+    ) || defaults.contactImage
 
   return {
     ...defaults,
