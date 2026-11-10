@@ -238,8 +238,20 @@ function ProjectFormFields({
         throw new Error('Guarde o projeto antes de enviar mídia')
       }
       const localPreview = URL.createObjectURL(file)
-      if (kind === 'cover') setCoverPreview(localPreview)
-      if (kind === 'thumbnail') setThumbPreview(localPreview)
+      // Show the local blob immediately and keep it after upload. Swapping to a
+      // remote URL too early (before processing finishes) breaks the preview.
+      if (kind === 'cover') {
+        setCoverPreview((prev) => {
+          if (prev?.startsWith('blob:')) URL.revokeObjectURL(prev)
+          return localPreview
+        })
+      }
+      if (kind === 'thumbnail') {
+        setThumbPreview((prev) => {
+          if (prev?.startsWith('blob:')) URL.revokeObjectURL(prev)
+          return localPreview
+        })
+      }
 
       setUploading(true)
       try {
@@ -251,10 +263,6 @@ function ProjectFormFields({
           if (durablePath) {
             await patchAdminProject(projectId, { thumbnail: durablePath })
           }
-          const remote = normalizeProcessedMediaUrl(
-            uploaded.thumbnail_url || uploaded.display_url || uploaded.url,
-          )
-          if (remote) setThumbPreview(remote)
         } else {
           await setProjectCover(projectId, uploaded.id)
           // Prefer optimized `.jpg` master (same as backend optimizedPath).
@@ -262,10 +270,6 @@ function ProjectFormFields({
           if (durablePath) {
             await patchAdminProject(projectId, { cover: durablePath })
           }
-          const remote = normalizeProcessedMediaUrl(
-            uploaded.display_url || uploaded.url,
-          )
-          if (remote) setCoverPreview(remote)
         }
         return uploaded
       } finally {

@@ -11,9 +11,9 @@ function isAbsoluteUrl(value: string) {
 
 /**
  * Upload processing deletes the original `.jpeg` after writing `.jpg` + `.webp`.
- * Cover/thumbnail often keep the pre-process path, so rewrite to the durable WebP
- * sibling (same strategy gallery `display_url` uses). Gallery images are fine
- * because they resolve from the upload record after processing.
+ * Cover/thumbnail often keep the pre-process `.jpeg` path, so rewrite only that
+ * extension to the durable WebP sibling. Do NOT rewrite `.jpg` — that is the
+ * optimized master path and must keep working for cover preview.
  */
 export function normalizeProcessedMediaUrl(
   value: string | null | undefined,
@@ -22,9 +22,9 @@ export function normalizeProcessedMediaUrl(
   const trimmed = value.trim()
   if (!trimmed) return undefined
 
-  // Original camera JPEGs are removed; prefer the WebP variant that processing keeps.
-  if (/\.jpe?g$/i.test(trimmed)) {
-    return trimmed.replace(/\.jpe?g$/i, '.webp')
+  // Only the deleted original extension — not `.jpg` (durable optimized master).
+  if (/\.jpeg$/i.test(trimmed)) {
+    return trimmed.replace(/\.jpeg$/i, '.webp')
   }
 
   return trimmed
