@@ -28,6 +28,10 @@ export type SiteConfig = {
   titleTemplate: string
   description: string
   ogImage: string
+  /** Home bottom CTA portrait (About section). */
+  homeCtaImage?: string
+  /** Contact page side visual. */
+  contactImage?: string
   location: {
     city: string
     region: string
@@ -198,6 +202,7 @@ export function mergeSiteSettings(
     } | null
     social?: unknown
     nav?: unknown
+    branding?: unknown
   } | null,
 ): SiteConfig {
   if (!settings) return defaults
@@ -212,6 +217,32 @@ export function mergeSiteSettings(
   const country =
     settings.contact?.address?.country?.trim() || defaults.location.country
 
+  const branding =
+    settings.branding &&
+    typeof settings.branding === 'object' &&
+    !Array.isArray(settings.branding)
+      ? (settings.branding as Record<string, unknown>)
+      : null
+
+  const rawHome =
+    typeof branding?.home_cta_image_url === 'string'
+      ? branding.home_cta_image_url.trim()
+      : ''
+  const rawContact =
+    typeof branding?.contact_image_url === 'string'
+      ? branding.contact_image_url.trim()
+      : ''
+
+  const homeCtaImage =
+    (rawHome && /^https?:\/\//i.test(rawHome)
+      ? rawHome.replace(/\.jpeg$/i, '.webp')
+      : undefined) || defaults.homeCtaImage
+
+  const contactImage =
+    (rawContact && /^https?:\/\//i.test(rawContact)
+      ? rawContact.replace(/\.jpeg$/i, '.webp')
+      : undefined) || defaults.contactImage
+
   return {
     ...defaults,
     name,
@@ -224,6 +255,8 @@ export function mergeSiteSettings(
     language: locale.replace('_', '-'),
     title: `${name} | ${defaults.role}`,
     titleTemplate: `%s | ${name}`,
+    homeCtaImage,
+    contactImage,
     location: {
       ...defaults.location,
       city,

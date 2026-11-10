@@ -1,8 +1,11 @@
 import { ArrowRightIcon } from 'lucide-react'
+import { useSiteConfig } from '@/app/providers/site-settings-context'
 import { Container } from '@/components/layout/Container'
 import { Reveal } from '@/components/motion/Reveal'
 import { Button } from '@/components/ui/button'
 import { Link } from '@/components/ui/Link'
+
+const FALLBACK_IMAGE = 'https://placehold.co/500x600'
 
 const SOCIAL_LINKS = [
   {
@@ -20,6 +23,9 @@ const SOCIAL_LINKS = [
 ] as const
 
 export function About() {
+  const site = useSiteConfig()
+  const imageSrc = site.homeCtaImage || FALLBACK_IMAGE
+
   return (
     <section id="about" className="py-[var(--space-section)]">
       <Container className="mx-auto flex w-full max-w-4xl flex-col items-center justify-center text-center">
@@ -47,8 +53,10 @@ export function About() {
             className="group relative mx-auto mt-8 block aspect-[5/6] w-full max-w-[16rem] overflow-hidden rounded-[46.5%] no-underline hover:no-underline sm:max-w-xs md:mt-10 md:max-w-md lg:max-w-xl"
           >
             <img
-              src="https://placehold.co/500x600"
-              alt="Victor Fernandes"
+              src={imageSrc}
+              alt={site.name}
+              loading="lazy"
+              decoding="async"
               className="size-full object-cover transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-105"
             />
           </Link>

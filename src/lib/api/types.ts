@@ -80,11 +80,20 @@ export type SiteNavItem = {
   [key: string]: unknown
 }
 
+/** Free-form branding blob on site settings (API accepts any object). */
+export type SiteBranding = {
+  home_cta_image_id?: string | null
+  home_cta_image_url?: string | null
+  contact_image_id?: string | null
+  contact_image_url?: string | null
+  [key: string]: unknown
+}
+
 export type SiteSettings = {
   nav: SiteNavItem[] | Record<string, unknown> | unknown[]
   footer: unknown
   social: Record<string, string> | unknown[] | null
-  branding: unknown
+  branding: SiteBranding | unknown[] | null
   seo: SiteSeo | null
   contact: SiteContact | null
   updated_at?: string | null
