@@ -5,7 +5,12 @@ export {
   mapProjectGallery,
   mapProjectSummary,
 } from '@/lib/api/mappers'
-export { resolveProjectImage } from '@/lib/api/media'
+export {
+  durableCoverStoragePath,
+  durableThumbnailStoragePath,
+  normalizeProcessedMediaUrl,
+  resolveProjectImage,
+} from '@/lib/api/media'
 export {
   getProjectBySlug as fetchProjectBySlug,
   getRelatedProjects,
