@@ -23,14 +23,14 @@ export function Contact() {
             <Button
               variant="outline"
               size="lg"
-              className="h-11 px-4 sm:h-14 sm:px-6"
+              className="h-10 px-3.5 sm:h-14 sm:px-6"
               asChild
             >
               <Link href="/contato" className="no-underline hover:no-underline">
-                <span className="text-sm font-medium tracking-widest uppercase sm:text-base">
+                <span className="text-xs font-medium tracking-wide uppercase sm:text-base sm:tracking-widest">
                   Entrar em contato
                 </span>
-                <ArrowRightIcon className="size-4 sm:size-5" />
+                <ArrowRightIcon className="size-3.5 sm:size-5" />
               </Link>
             </Button>
             <Link
