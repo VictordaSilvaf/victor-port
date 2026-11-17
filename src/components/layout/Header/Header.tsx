@@ -94,12 +94,12 @@ export function Header() {
             <Button
               variant="outline"
               size="lg"
-              className="cursor-interference text-lg"
+              className="cursor-interference h-9 gap-1 px-2.5 text-[0.7rem] tracking-wide uppercase sm:h-14 sm:gap-1.5 sm:px-6 sm:text-lg sm:tracking-normal"
               asChild
             >
               <Link to="/contato" onClick={closeMenu}>
-                <span className="text-lg uppercase">Entrar em contato</span>
-                <ArrowRightIcon className="h-6 w-6" />
+                <span className="uppercase sm:text-lg">Entrar em contato</span>
+                <ArrowRightIcon className="size-3.5 sm:size-6" />
               </Link>
             </Button>
           </div>

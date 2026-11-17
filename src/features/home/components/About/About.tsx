@@ -37,12 +37,12 @@ export function About() {
           <Button
             variant="outline"
             size="lg"
-            className="mt-6 tracking-widest uppercase md:mt-8"
+            className="mt-6 h-10 px-3.5 text-xs tracking-wide uppercase md:mt-8 sm:h-14 sm:px-6 sm:text-sm sm:tracking-widest"
             asChild
           >
             <Link href="/contato" className="no-underline hover:no-underline">
               Entrar em contato
-              <ArrowRightIcon className="size-4" />
+              <ArrowRightIcon className="size-3.5 sm:size-5" />
             </Link>
           </Button>
 
