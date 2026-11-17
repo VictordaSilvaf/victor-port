@@ -11,9 +11,9 @@ function isAbsoluteUrl(value: string) {
 
 /**
  * Upload processing deletes the original `.jpeg` after writing `.jpg` + `.webp`.
- * Cover/thumbnail often keep the pre-process `.jpeg` path, so rewrite only that
- * extension to the durable WebP sibling. Do NOT rewrite `.jpg` — that is the
- * optimized master path and must keep working for cover preview.
+ * Cover/thumbnail often keep the pre-process `.jpeg` path. Prefer the durable
+ * optimized `.jpg` master — full-size `.webp` can be missing when encoding fails.
+ * Do NOT rewrite `.jpg` (already durable) or `*_thumb.webp`.
  */
 export function normalizeProcessedMediaUrl(
   value: string | null | undefined,
@@ -22,9 +22,14 @@ export function normalizeProcessedMediaUrl(
   const trimmed = value.trim()
   if (!trimmed) return undefined
 
-  // Only the deleted original extension — not `.jpg` (durable optimized master).
+  // Deleted original → durable optimized master
   if (/\.jpeg$/i.test(trimmed)) {
-    return trimmed.replace(/\.jpeg$/i, '.webp')
+    return trimmed.replace(/\.jpeg$/i, '.jpg')
+  }
+
+  // Premature / missing full-size webp → durable jpg (keep thumbnails)
+  if (/\.webp$/i.test(trimmed) && !/_thumb\.webp$/i.test(trimmed)) {
+    return trimmed.replace(/\.webp$/i, '.jpg')
   }
 
   return trimmed

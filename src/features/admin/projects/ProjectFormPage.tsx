@@ -13,7 +13,6 @@ import {
   removeProjectImage,
   setProjectCover,
   setProjectThumbnail,
-  updateAdminProject,
 } from '@/lib/api/admin-projects'
 import {
   createCategory,
@@ -187,8 +186,9 @@ function ProjectFormFields({
 
   const saveMutation = useMutation({
     mutationFn: async (values: FormValues) => {
-      // Cover/thumbnail are owned by dedicated upload endpoints. Do not resend
-      // stale storage paths here — that re-locks deleted `.jpeg` originals.
+      // Cover/thumbnail are owned by dedicated upload endpoints. Never send them
+      // here: PUT treats omitted fields as null and wipes the stored paths.
+      // Existing projects must PATCH so cover/thumbnail stay untouched.
       const body = {
         title: values.title,
         slug: values.slug || undefined,
@@ -203,7 +203,7 @@ function ProjectFormFields({
         tags: tagIds,
       }
       if (isNew) return createAdminProject(body)
-      return updateAdminProject(projectId!, body)
+      return patchAdminProject(projectId!, body)
     },
     onSuccess: async (saved) => {
       toast.success(isNew ? 'Projeto criado' : 'Projeto atualizado')
